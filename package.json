@@ -1,0 +1,37 @@
+{
+  "name": "istrowars",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "build": "tsc",
+    "watch": "concurrently -n build,web 'tsc -w --preserveWatchOutput' 'nodemon dist/main.js'",
+    "db": "knex --knexfile db/knexfile.tkks"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rio/IstroWars.git"
+  },
+  "author": "Rio",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rio/IstroWars/issues"
+  },
+  "homepage": "https://github.com/Rio/IstroWars#readme",
+  "dependencies": {
+    "@koa/router": "^10.1.1",
+    "knex": "^0.95.11",
+    "koa": "^2.13.1",
+    "koa-logger": "^3.2.1",
+    "ws": "^8.2.2"
+  },
+  "devDependencies": {
+    "@types/koa": "^2.13.4",
+    "@types/koa__router": "^8.0.8",
+    "@types/koa-logger": "^3.1.1",
+    "concurrently": "^6.2.1",
+    "nodemon": "^2.0.12",
+    "sqlite3": "^5.0.2",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.4.3"
+  }
+}
