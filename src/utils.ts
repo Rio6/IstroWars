@@ -40,3 +40,7 @@ export function hashAI({ name, buildBar }: { name: string, buildBar: (Spec | str
 
    return hash;
 }
+
+export function isDev() {
+   return process.env.NODE_ENV !== 'production';
+}

@@ -38,7 +38,7 @@ router.post('/:name/leave', async ctx => {
       await tsx('stars_players')
       .where({
          star_name: ctx.params.name,
-         player_name: ctx.user.name,
+         player_name: ctx.player.name,
       })
       .delete();
 
@@ -55,7 +55,7 @@ router.post('/:name/:action', async ctx => {
          .insert({
             star_name,
             side: action,
-            player_name: ctx.user.name,
+            player_name: ctx.player.name,
          })
          .onConflict(['star_name', 'player_name']).merge();
 
@@ -75,7 +75,7 @@ router.post('/:name/ai/add', async ctx => {
       await tsx('stars_ais')
       .insert({
          star_name: ctx.params.name,
-         player_name: ctx.user.name,
+         player_name: ctx.player.name,
          ai_name,
          build_bar,
          hash: hashAI(ctx.request.body),
@@ -97,7 +97,7 @@ router.post('/:name/ai/remove', async ctx => {
       await tsx('stars_ais')
       .where({
          star_name: ctx.params.name,
-         player_name: ctx.user.name,
+         player_name: ctx.player.name,
          ai_name,
       })
       .delete();

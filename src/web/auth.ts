@@ -1,18 +1,37 @@
 import { Context, Next } from 'koa';
+import Istrolid from 'istrolid';
 
-export interface User {
+export interface Player {
    name: string;
 };
 
-export default async function(ctx: Context, next: Next) {
-   ctx.user = <User> {
-      name: 'R26',
-   };
+export async function auth(ctx: Context, next: Next) {
+   try {
+      ctx.player = JSON.parse(ctx.cookies.get('player', { signed: true }) as string);
+   } catch(e) {
+      if(ctx.method === 'POST') {
+         return ctx.status = 403;
+      }
+   }
+
    return await next();
+}
+
+export async function login(ctx: Context) {
+   const { name, gameKey } = ctx.request.body;
+   if(await Istrolid.checkPlayer(name, gameKey)) {
+      const player = {
+         name: name,
+      };
+      ctx.cookies.set('player', JSON.stringify(player), { signed: true });
+      ctx.body = { success: true };
+   } else {
+      ctx.status = 403;
+   }
 }
 
 declare module 'koa' {
    interface BaseContext {
-      user: User;
+      player: Player;
    }
 };
