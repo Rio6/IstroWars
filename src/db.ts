@@ -1,4 +1,5 @@
 import knex from 'knex';
+import { isDev } from 'utils';
 
 function sqliteDB() {
    return knex({
@@ -16,6 +17,4 @@ function postgresDB() {
    });
 }
 
-export default process.env.NODE_ENV === 'production'
-   ? postgresDB()
-   : sqliteDB();
+export default isDev() ? sqliteDB() : postgresDB();
