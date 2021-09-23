@@ -7,6 +7,7 @@ function sqliteDB() {
       connection: {
          filename: 'db/dev.sqlite3',
       },
+      useNullAsDefault: true,
    });
 }
 
