@@ -13,6 +13,8 @@ type Spec = {
 };
 
 export function hashAI({ name, buildBar }: { name: string, buildBar: (Spec | string)[] }) {
+   if(!Array.isArray(buildBar)) buildBar = [];
+
    const stringifyPart = (p: Part) => JSON.stringify({
       name: p.name,
       pos: p.pos,

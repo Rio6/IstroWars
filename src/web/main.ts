@@ -20,7 +20,7 @@ async function main() {
 
    router.post('/login', login);
 
-   router.use(auth);
+   router.use(auth('GET'));
    router.use('/stars', starsRouter.routes());
 
    app.use(logger(isDev() ? 'dev' : 'short'));

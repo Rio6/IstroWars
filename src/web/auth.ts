@@ -5,16 +5,18 @@ export interface Player {
    name: string;
 };
 
-export async function auth(ctx: Context, next: Next) {
-   try {
-      ctx.player = JSON.parse(ctx.cookies.get('player', { signed: true }) as string);
-   } catch(e) {
-      if(ctx.method === 'POST') {
-         return ctx.status = 403;
+export function auth(...allowedMethods: string[]) {
+   return async (ctx: Context, next: Next) => {
+      try {
+         ctx.player = JSON.parse(ctx.cookies.get('player', { signed: true }) as string);
+      } catch(e) {
+         if(ctx.method !== 'GET') {
+            return ctx.status = 403;
+         }
       }
-   }
 
-   return await next();
+      return await next();
+   }
 }
 
 export async function login(ctx: Context) {
