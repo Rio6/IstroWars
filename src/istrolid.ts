@@ -14,18 +14,17 @@ export default class Istrolid extends EventEmitter {
 
          ws.on('message', msg => {
             const [msgType, res] = JSON.parse(msg.toString());
-
-            switch(msgType) {
-               case 'playerValid':
-                  if(res.name === name) {
+            if(res.name == name) {
+               switch(msgType) {
+                  case 'playerValid':
                      resolve(true);
                      ws.close();
-                  }
-                  break;
-               case 'playerInvalid':
-                  resolve(false);
-                  ws.close;
-                  break;
+                     break;
+                  case 'playerInvalid':
+                     resolve(false);
+                     ws.close();
+                     break;
+               }
             }
          });
 
