@@ -36,11 +36,11 @@ router.get('/:name', async ctx => {
 router.post('/:name/leave', async ctx => {
    await db.transaction(async tsx => {
       await tsx('stars_players')
-      .where({
-         star_name: ctx.params.name,
-         player_name: ctx.player.name,
-      })
-      .delete();
+         .where({
+            star_name: ctx.params.name,
+            player_name: ctx.player.name,
+         })
+         .delete();
 
       ctx.body = { success: true };
    });
@@ -52,57 +52,63 @@ router.post('/:name/:action', async ctx => {
    if(action == 'attack' || action == 'defend') {
       await db.transaction(async tsx => {
          await tsx('stars_players')
-         .insert({
-            star_name,
-            side: action,
-            player_name: ctx.player.name,
-         })
-         .onConflict(['star_name', 'player_name']).merge();
+            .insert({
+               star_name,
+               side: action,
+               player_name: ctx.player.name,
+            })
+            .onConflict(['star_name', 'player_name']).merge();
 
          ctx.body = { success: true };
       });
    }
 });
 
-router.post('/:name/ai/add', async ctx => {
-   const { name: ai_name, buildBar: build_bar } = ctx.request.body;
+router.get('/:name/ai', async ctx => {
+   ctx.body = await db('stars_ais')
+      .where({ star_name: ctx.params.name })
+      .select('id', 'ai_name', 'player_name', 'build_bar');
+});
 
-   if(typeof ai_name !== 'string') {
-      return ctx.status = 400;
-   }
+router.get('/:name/ai/:id', async ctx => {
+   ctx.body = await db('stars_ais')
+      .where({ id: ctx.params.id })
+      .first('id', 'ai_name', 'player_name', 'build_bar');
+});
+
+router.put('/:star_name/ai/:ai_name', async ctx => {
+   const { star_name, ai_name } = ctx.params;
+   const buildBar = ctx.request.body;
 
    await db.transaction(async tsx => {
       await tsx('stars_ais')
-      .insert({
-         star_name: ctx.params.name,
-         player_name: ctx.player.name,
-         ai_name,
-         build_bar,
-         hash: hashAI(ctx.request.body),
-      })
-      .onConflict(['star_name', 'player_name', 'hash']).ignore();
+         .insert({
+            star_name,
+            player_name: ctx.player.name,
+            ai_name,
+            build_bar: buildBar,
+            hash: hashAI({
+               name: ai_name,
+               buildBar,
+            }),
+         })
+         .onConflict(['star_name', 'player_name', 'hash']).ignore()
+         .returning(['id', 'ai_name', 'player_name', 'build_bar']);
 
       ctx.body = { success: true };
    });
 });
 
-router.post('/:name/ai/remove', async ctx => {
-   const { name: ai_name } = ctx.request.body;
-
-   if(typeof ai_name !== 'string') {
-      return ctx.status = 400;
-   }
-
+router.delete('/:name/ai/:id', async ctx => {
    await db.transaction(async tsx => {
-      await tsx('stars_ais')
-      .where({
-         star_name: ctx.params.name,
-         player_name: ctx.player.name,
-         ai_name,
-      })
-      .delete();
+      const count = await tsx('stars_ais')
+         .where({
+            id: ctx.params.id,
+            player_name: ctx.player.name,
+         })
+         .delete();
 
-      ctx.body = { success: true };
+      ctx.body = { success: count > 0 };
    });
 });
 
