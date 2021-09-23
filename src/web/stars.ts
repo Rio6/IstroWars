@@ -3,21 +3,11 @@ import Router from '@koa/router'
 
 import db from 'db';
 import { hashAI } from 'utils';
+import { Star } from 'types';
 
 const router = new Router()
 
-router.get('/', async ctx => {
-   ctx.body = await db('stars')
-      .select('name', 'faction');
-});
-
-router.get('/:name', async ctx => {
-   const star = await db('stars')
-      .where({ name: ctx.params.name })
-      .first('name', 'faction');
-
-   if(star == null) return ctx.status = 404;
-
+async function extraStarInfo(star: Pick<Star, 'id' | 'name'>) {
    const players = await db('stars_players')
       .where({ star_name: star.name })
       .select('player_name as name', 'side');
@@ -26,10 +16,35 @@ router.get('/:name', async ctx => {
       .where({ star_name: star.name })
       .select('ai_name as name', 'player_name as player');
 
+   const edges = await db('stars_edges')
+      .where({ star_a: star.id })
+      .join('stars', 'star_b', 'stars.id')
+      .select('name');
+
+   return { players, ais, edges: edges.map(s => s.name) };
+}
+
+router.get('/', async ctx => {
+   const stars = await db('stars').select('id', 'name', 'faction');
+
+   ctx.body = await Promise.all(
+      stars.map(async star => ({
+         ...star,
+         ...await extraStarInfo(star),
+      }))
+   );
+});
+
+router.get('/:name', async ctx => {
+   const star = await db('stars')
+      .where({ name: ctx.params.name })
+      .first('id', 'name', 'faction');
+
+   if(star == null) return ctx.status = 404;
+
    ctx.body = {
       ...star,
-      players,
-      ais,
+      ...await extraStarInfo(star),
    };
 });
 
