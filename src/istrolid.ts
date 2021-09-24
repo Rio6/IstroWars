@@ -4,6 +4,40 @@ import EventEmitter from 'events';
 const ROOT_ADDR = 'ws://198.199.109.223:88';
 
 export default class Istrolid extends EventEmitter {
+
+   ws!: WebSocket;
+   rootAddr: string;
+
+   constructor(rootAddr: string = ROOT_ADDR) {
+      super()
+      this.rootAddr = rootAddr;
+      this.connect();
+   }
+
+   connect() {
+      if(this.ws) {
+         this.ws.close();
+      }
+
+      this.ws = new WebSocket(this.rootAddr);
+
+      this.ws.on('open', () => this.send('registerBot'));
+      this.ws.on('close', () => setTimeout(this.connect, 1000));
+      this.ws.on('error', err => this.emit('error', err));
+
+      this.ws.on('message', json => {
+         const [name, data] = JSON.parse(json.toString());
+         if(typeof name === 'string') {
+            this.emit.apply(this, [name, data]);
+         }
+      });
+   }
+
+   send(...args: any[]) {
+      this.ws.send(JSON.stringify(args));
+   }
+
+   // Static method used by web instance to login players
    static checkPlayer(name: string, gameKey: string, rootAddr = ROOT_ADDR): Promise<boolean> {
       return new Promise((resolve, reject) => {
          const ws = new WebSocket(rootAddr);
@@ -28,7 +62,7 @@ export default class Istrolid extends EventEmitter {
             }
          });
 
-         setTimeout(() => ws.close(), 5000);
+         setTimeout(() => ws.close(), 3000);
       });
    }
 }
