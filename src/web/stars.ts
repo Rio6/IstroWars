@@ -10,7 +10,7 @@ const router = new Router()
 async function extraStarInfo(star: Pick<Star, 'id' | 'name'>) {
    const players = await db('stars_players')
       .where({ star_name: star.name })
-      .select('player_name as name', 'side');
+      .select('player_name as name');
 
    const ais = await db('stars_ais')
       .where({ star_name: star.name })
@@ -61,22 +61,18 @@ router.post('/:name/leave', async ctx => {
    });
 });
 
-router.post('/:name/:action', async ctx => {
-   const { name: star_name, action } = ctx.params;
+router.post('/:name/enter', async ctx => {
+   const { name: star_name } = ctx.params;
+   await db.transaction(async tsx => {
+      await tsx('stars_players')
+         .insert({
+            star_name,
+            player_name: ctx.player.name,
+         })
+         .onConflict(['star_name', 'player_name']).merge();
 
-   if(action == 'attack' || action == 'defend') {
-      await db.transaction(async tsx => {
-         await tsx('stars_players')
-            .insert({
-               star_name,
-               side: action,
-               player_name: ctx.player.name,
-            })
-            .onConflict(['star_name', 'player_name']).merge();
-
-         ctx.body = { success: true };
-      });
-   }
+      ctx.body = { success: true };
+   });
 });
 
 router.get('/:name/ai', async ctx => {
@@ -87,7 +83,7 @@ router.get('/:name/ai', async ctx => {
 
 router.get('/:name/ai/:id', async ctx => {
    ctx.body = await db('stars_ais')
-      .where({ id: ctx.params.id })
+      .where({ id: parseInt(ctx.params.id) })
       .first('id', 'ai_name', 'player_name', 'build_bar');
 });
 
@@ -118,7 +114,7 @@ router.delete('/:name/ai/:id', async ctx => {
    await db.transaction(async tsx => {
       const count = await tsx('stars_ais')
          .where({
-            id: ctx.params.id,
+            id: parseInt(ctx.params.id),
             player_name: ctx.player.name,
          })
          .delete();

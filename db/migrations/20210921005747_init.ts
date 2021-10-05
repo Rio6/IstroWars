@@ -16,7 +16,6 @@ export async function up(knex: Knex): Promise<void> {
             table.increments('id');
             table.string('star_name').notNullable().index().references('stars.name').onDelete('CASCADE');
             table.string('player_name').notNullable();
-            table.enu('side', ['attack', 'defend']).notNullable();
             table.unique(['star_name', 'player_name']);
          })
 
@@ -28,6 +27,14 @@ export async function up(knex: Knex): Promise<void> {
             table.string('hash').notNullable().index();
             table.jsonb('build_bar').notNullable();
             table.unique(['star_name', 'player_name', 'hash']);
+         })
+
+         .createTable('stars_factions', table => {
+            table.increments('id');
+            table.string('star_name').notNullable().index().references('stars.name').onDelete('CASCADE');
+            table.string('faction_name').notNullable().index();
+            table.float('influence', 4, 4);
+            table.unique(['star_name', 'faction_name']);
          })
 
          .createTable('stars_edges', table => {
@@ -42,6 +49,7 @@ export async function down(knex: Knex): Promise<void> {
    await knex.transaction(async tsx => {
       await tsx.schema
          .dropTableIfExists('stars_edges')
+         .dropTableIfExists('stars_factions')
          .dropTableIfExists('stars_ais')
          .dropTableIfExists('stars_players')
          .dropTableIfExists('stars');
