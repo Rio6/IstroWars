@@ -3,6 +3,29 @@ import EventEmitter from 'events';
 
 const ROOT_ADDR = 'ws://198.199.109.223:88';
 
+type EventListener<T> = (event: T) => void;
+
+interface ChatMessage {
+   text: string;
+   name: string;
+   color: string;
+   channel?: string;
+}
+
+interface GameReport {
+   serverName: string;
+   ranked: boolean;
+   time: number;
+   type: string;
+   winningSide: string;
+   players: {
+      name: string;
+      side: string;
+      ai: boolean;
+   }[];
+   channel: string;
+}
+
 export default class Istrolid extends EventEmitter {
 
    ws!: WebSocket;
@@ -64,5 +87,14 @@ export default class Istrolid extends EventEmitter {
 
          setTimeout(() => ws.close(), 3000);
       });
+   }
+
+   // Typings
+   on(event: 'error', listener: EventListener<WebSocket.ErrorEvent>): this;
+   on(event: 'message', listener: EventListener<ChatMessage>): this;
+   on(event: 'gameReport', listener: EventListener<GameReport>): this;
+   on(event: string, listener: EventListener<any>): this {
+      super.on(event, listener);
+      return this;
    }
 }

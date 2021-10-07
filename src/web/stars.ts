@@ -1,4 +1,3 @@
-import lodash from 'lodash';
 import Router from '@koa/router'
 
 import db from 'db';
