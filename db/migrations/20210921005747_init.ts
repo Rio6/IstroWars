@@ -7,21 +7,21 @@ export async function up(knex: Knex): Promise<void> {
 
          .createTable('stars', table => {
             table.increments('id');
-            table.string('name').notNullable().index().unique();
-            table.string('faction').index();
+            table.string('star_name').notNullable().index();
             table.jsonb('position').notNullable();
+            table.unique(['star_name']);
          })
 
          .createTable('stars_players', table => {
             table.increments('id');
-            table.string('star_name').notNullable().index().references('stars.name').onDelete('CASCADE');
+            table.string('star_name').notNullable().index().references('stars.star_name').onDelete('CASCADE');
             table.string('player_name').notNullable();
-            table.unique(['star_name', 'player_name']);
+            table.unique(['player_name']);
          })
 
          .createTable('stars_ais', table => {
             table.increments('id');
-            table.string('star_name').notNullable().index().references('stars.name').onDelete('CASCADE');
+            table.string('star_name').notNullable().index().references('stars.star_name').onDelete('CASCADE');
             table.string('ai_name').notNullable();
             table.string('player_name').notNullable().index();
             table.string('hash').notNullable().index();
@@ -31,7 +31,7 @@ export async function up(knex: Knex): Promise<void> {
 
          .createTable('stars_factions', table => {
             table.increments('id');
-            table.string('star_name').notNullable().index().references('stars.name').onDelete('CASCADE');
+            table.string('star_name').notNullable().index().references('stars.star_name').onDelete('CASCADE');
             table.string('faction_name').notNullable().index();
             table.float('influence', 4, 4);
             table.unique(['star_name', 'faction_name']);

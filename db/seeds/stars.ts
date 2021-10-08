@@ -6,22 +6,22 @@ export async function seed(knex: Knex): Promise<void> {
 
     // Inserts seed entries
     await knex('stars').insert([
-        { name: 'Akana',   position: [ 0,  0] },
-        { name: 'Alki',    position: [ 0, 10] },
-        { name: 'Arcon',   position: [ 0, 20] },
-        { name: 'Azee',    position: [ 0, 30] },
-        { name: 'Boyar',   position: [ 0, 40] },
-        { name: 'Chimera', position: [ 0, 50] },
-        { name: 'Drakon',  position: [ 0, 60] },
-        { name: 'Denz',    position: [ 0, 70] },
-        { name: 'Frox',    position: [ 0, 80] },
-        { name: 'Laz',     position: [ 0, 90] },
-        { name: 'Kozak',   position: [10,  0] },
-        { name: 'Mir',     position: [20, 10] },
-        { name: 'Moss',    position: [30, 10] },
-        { name: 'Phoenix', position: [40, 10] },
-        { name: 'Quar',    position: [50, 10] },
-        { name: 'Turon',   position: [60, 10] },
+        { star_name: 'Akana',   position: '[ 0,  0]' },
+        { star_name: 'Alki',    position: '[ 0, 10]' },
+        { star_name: 'Arcon',   position: '[ 0, 20]' },
+        { star_name: 'Azee',    position: '[ 0, 30]' },
+        { star_name: 'Boyar',   position: '[ 0, 40]' },
+        { star_name: 'Chimera', position: '[ 0, 50]' },
+        { star_name: 'Drakon',  position: '[ 0, 60]' },
+        { star_name: 'Denz',    position: '[ 0, 70]' },
+        { star_name: 'Frox',    position: '[ 0, 80]' },
+        { star_name: 'Laz',     position: '[ 0, 90]' },
+        { star_name: 'Kozak',   position: '[10,  0]' },
+        { star_name: 'Mir',     position: '[20, 10]' },
+        { star_name: 'Moss',    position: '[30, 10]' },
+        { star_name: 'Phoenix', position: '[40, 10]' },
+        { star_name: 'Quar',    position: '[50, 10]' },
+        { star_name: 'Turon',   position: '[60, 10]' },
     ]);
 
     const connect = (a: number, b: number) => [{ star_a: a, star_b: b}, { star_a: b, star_b: a}];

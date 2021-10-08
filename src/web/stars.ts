@@ -6,13 +6,13 @@ import { Star } from 'types';
 
 const router = new Router()
 
-async function extraStarInfo(star: Pick<Star, 'id' | 'name'>) {
+async function extraStarInfo(star: Pick<Star, 'id' | 'star_name'>) {
    const players = await db('stars_players')
-      .where({ star_name: star.name })
+      .where({ star_name: star.star_name })
       .select('player_name as name');
 
    const ais = await db('stars_ais')
-      .where({ star_name: star.name })
+      .where({ star_name: star.star_name })
       .select('ai_name as name', 'player_name as player');
 
    const edges = await db('stars_edges')
@@ -36,8 +36,8 @@ router.get('/', async ctx => {
 
 router.get('/:name', async ctx => {
    const star = await db('stars')
-      .where({ name: ctx.params.name })
-      .first('id', 'name', 'faction');
+      .where({ star_name: ctx.params.name })
+      .first('id', 'star_name', 'faction');
 
    if(star == null) return ctx.status = 404;
 
@@ -68,7 +68,7 @@ router.post('/:name/enter', async ctx => {
             star_name,
             player_name: ctx.player.name,
          })
-         .onConflict(['star_name', 'player_name']).merge();
+         .onConflict(['player_name']).merge();
 
       ctx.body = { success: true };
    });

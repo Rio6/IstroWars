@@ -4,12 +4,17 @@ import Istrolid from 'istrolid';
 import * as istrostats from 'istrostats';
 import db from 'db';
 
-async function normalizeInfluence(star: string) {
-   await db.transaction(async tsx => {
-      await tsx('stars_factions')
-         .where({ star_name: star })
-         .update('influence', tsx.raw('influence / (select sum(influence) from stars_factions where star_name = ?)', star));
-   });
+async function normalizeInfluence(tsx: Knex.Transaction, star: string) {
+   await tsx('stars_factions')
+      .where({ star_name: star })
+      .where('influence', '<>', 0)
+      .update('influence', tsx.raw('max(0, min(1, influence / (select sum(influence) from stars_factions where star_name = ?)))', star));
+}
+
+async function changeInfluence(tsx: Knex.Transaction, star: string, faction: string, change: number) {
+   await tsx('stars_factions')
+      .where({ star_name: star, faction_name: faction })
+      .update('influence', tsx.raw('(influence - 1) * (1 + 1 / (influence - 1 + ?))', change));
 }
 
 function main() {
@@ -20,7 +25,19 @@ function main() {
    istro.on('gameReport', async report => {
       for(const reportPlayer of report.players) {
          const player = await istrostats.player(reportPlayer.name);
-         console.log(player);
+         const player = { name: "R26", faction: "R26" };
+         if(!player) continue;
+
+         await db.transaction(async tsx => {
+            const star = await tsx('stars_players')
+               .where('player_name', player.name)
+               .first('star_name');
+
+            if(star) {
+               await changeInfluence(tsx, star.star_name, player.faction, 0.1);
+               await normalizeInfluence(tsx, star.star_name);
+            }
+         });
       }
    });
 
@@ -28,5 +45,3 @@ function main() {
 }
 
 main();
-
-// (a+x)(1-x)/(1-a-x)

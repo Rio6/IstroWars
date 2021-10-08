@@ -2,7 +2,7 @@ import { knex } from 'knex';
 
 export interface Star {
   id: number;
-  name: string;
+  star_name: string;
   faction: string;
 }
 
