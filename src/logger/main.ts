@@ -4,17 +4,8 @@ import Istrolid from 'istrolid';
 import * as istrostats from 'istrostats';
 import db from 'db';
 
-async function normalizeInfluence(tsx: Knex.Transaction, star: string) {
-   await tsx('stars_factions')
-      .where({ star_name: star })
-      .where('influence', '<>', 0)
-      .update('influence', tsx.raw('max(0, min(1, influence / (select sum(influence) from stars_factions where star_name = ?)))', star));
-}
-
-async function changeInfluence(tsx: Knex.Transaction, star: string, faction: string, change: number) {
-   await tsx('stars_factions')
-      .where({ star_name: star, faction_name: faction })
-      .update('influence', tsx.raw('(influence - 1) * (1 + 1 / (influence - 1 + ?))', change));
+function asyncMap<T, R>(items: T[], fn: (t: T) => Promise<R>) {
+   return Promise.all(items.map(fn));
 }
 
 function main() {
@@ -23,22 +14,43 @@ function main() {
    istro.on('error', console.error);
 
    istro.on('gameReport', async report => {
-      for(const reportPlayer of report.players) {
-         const player = await istrostats.player(reportPlayer.name);
-         const player = { name: "R26", faction: "R26" };
-         if(!player) continue;
+      if(!report.winningSide) return;
 
-         await db.transaction(async tsx => {
-            const star = await tsx('stars_players')
-               .where('player_name', player.name)
-               .first('star_name');
+      // Grab more player info from istrostats
+      const players = await asyncMap(report.players, async player => {
+         const playerInfo = await istrostats.player(player.name);
+         if(playerInfo) {
+            return {
+               ...playerInfo,
+               winner: player.side === report.winningSide,
+            };
+         }
+      });
 
-            if(star) {
-               await changeInfluence(tsx, star.star_name, player.faction, 0.1);
-               await normalizeInfluence(tsx, star.star_name);
-            }
-         });
-      }
+      await db.transaction(tsx => asyncMap(players, async player => {
+         if(!player || !player.faction) return;
+
+         const change = player.winner ? 0.1 : -0.1;
+
+         const info = await tsx('stars_players')
+            .select('stars_players.star_name', 'influence')
+            .join('stars_factions', 'stars_factions.star_name', 'stars_players.star_name')
+            .where({
+               player_name: player.name,
+               faction_name: player.faction,
+            })
+            .first();
+
+         if(!info) return;
+
+         const newInfluence = Math.min(1, Math.max(0, info.influence + change));
+         await tsx('stars_factions')
+            .where({
+               star_name: info.star_name,
+               faction_name: player.faction,
+            })
+            .update('influence', newInfluence);
+      }));
    });
 
    console.log("Logger running");

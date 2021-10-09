@@ -6,7 +6,7 @@ interface Player {
    id: number;
    name: string;
    rank: number;
-   faction: string;
+   faction?: string;
    color: string;
    mode?: string;
    servers: string[];
@@ -16,7 +16,7 @@ interface Player {
 }
 
 export async function player(name: string): Promise<Player | null> {
-   const res = await fetch(API_URL + '/player?name=' + name);
+   const res = await fetch(API_URL + '/player?ai=false&name=' + name);
    const data: { count: number, players: Player[] } = await res.json() as any;
    if(data.count > 0) {
       return data.players[0];
