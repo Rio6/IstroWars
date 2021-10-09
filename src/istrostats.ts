@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-const API_URL = 'http://istrostats.r26.me/api';
+const API_URL = process.env.ISTROSTATS_API ?? 'http://istrostats.r26.me/api';
 
 interface Player {
    id: number;
