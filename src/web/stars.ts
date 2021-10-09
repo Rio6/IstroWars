@@ -1,8 +1,7 @@
 import Router from '@koa/router'
 
-import db from 'db';
+import db, { Star } from 'db';
 import { hashAI } from 'utils';
-import { Star } from 'types';
 
 const router = new Router()
 

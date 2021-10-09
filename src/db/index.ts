@@ -1,6 +1,8 @@
 import knex from 'knex';
 import { isDev } from 'utils';
 
+export * from './types';
+
 function sqliteDB() {
    return knex({
       client: 'sqlite3',
