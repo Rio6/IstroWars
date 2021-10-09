@@ -4,9 +4,9 @@
   "description": "Istrolid Clan Wars",
   "scripts": {
     "build": "tsc",
-    "web": "NODE_ENV=production NODE_PATH=dist node dist/web/main.js",
-    "logger": "NODE_ENV=production NODE_PATH=dist node dist/logger/main.js",
-    "watch": "NODE_ENV=development NODE_PATH=dist concurrently -n ' build,   web,logger' 'tsc -w --preserveWatchOutput' 'nodemon dist/web/main.js' 'nodemon dist/logger/main.js'",
+    "web": "NODE_ENV=production NODE_PATH=dist node dist/web",
+    "logger": "NODE_ENV=production NODE_PATH=dist node dist/logger",
+    "watch": "NODE_ENV=development NODE_PATH=dist concurrently -n ' build,   web,logger' 'tsc -w --preserveWatchOutput' 'nodemon dist/web' 'nodemon dist/logger'",
     "db": "knex --knexfile db/knexfile.ts",
     "clean": "rm -rf dist"
   },
