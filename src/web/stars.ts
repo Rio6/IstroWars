@@ -16,18 +16,19 @@ async function extraStarInfo(star: Pick<Star, 'id' | 'star_name'>) {
 
    const edges = await db('stars_edges')
       .where({ star_a: star.id })
-      .join('stars', 'star_b', 'stars.id')
-      .select('name');
+      .select('star_b');
 
-   return { players, ais, edges: edges.map(s => s.name) };
+   return { players, ais, edges: edges.map(e => e.star_b) };
 }
 
 router.get('/', async ctx => {
-   const stars = await db('stars').select('id', 'name', 'faction');
+   const stars = await db('stars').select('id', 'star_name', 'position');
 
    ctx.body = await Promise.all(
       stars.map(async star => ({
-         ...star,
+         id: star.id,
+         name: star.star_name,
+         position: JSON.parse(star.position),
          ...await extraStarInfo(star),
       }))
    );

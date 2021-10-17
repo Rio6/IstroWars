@@ -4,9 +4,12 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "strict": true,
+    "alwaysStrict": false,
+    "noImplicitUseStrict": true,
     "esModuleInterop": true,
     "preserveConstEnums": true,
-    "sourceMap": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
     "outDir": "dist",
     "declaration": true,
     "baseUrl": "./src"

@@ -1,5 +1,6 @@
 import Koa from 'koa'
 import Router from '@koa/router';
+import send from 'koa-send';
 import logger from 'koa-log';
 import body from 'koa-body';
 
@@ -21,7 +22,11 @@ async function main() {
    router.post('/login', login);
 
    router.use(auth('GET'));
-   router.use('/stars', starsRouter.routes());
+   router.use('/api/stars', starsRouter.routes());
+
+   router.get('/js/:path(.*)', async ctx => {
+      const result = await send(ctx, ctx.params.path, { root: __dirname + '/..' });
+   });
 
    app.use(logger(isDev() ? 'dev' : 'short'));
    app.use(body());
