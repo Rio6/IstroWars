@@ -77,7 +77,7 @@ window.IstroWarsMode = class IstroWarsMode extends window.GalaxyMode {
       if(res.status !== 200) return;
       const stars = await res.json();
 
-      this.stars = [];
+      this.stars = {};
       for(const star of stars) {
          this.stars[star.id] = star;
       }
