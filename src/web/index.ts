@@ -6,7 +6,7 @@ import body from 'koa-body';
 
 import { isDev } from 'utils';
 import starsRouter from './stars';
-import { auth, login } from './auth';
+import { auth } from './auth';
 
 async function main() {
    const app = new Koa()
@@ -19,9 +19,7 @@ async function main() {
    else
       throw new Error("No secret provided");
 
-   router.post('/login', login);
-
-   router.use(auth('GET'));
+   router.use(auth);
    router.use('/api/stars', starsRouter.routes());
 
    router.get('/js/:path(.*)', async ctx => {
