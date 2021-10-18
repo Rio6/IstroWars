@@ -1,9 +1,20 @@
 // variables from istrolid
 declare const ui: Record<string, any>;
 declare const v2: Record<string, any>;
+declare const chat: Record<string, any>;
 declare const onecup: Record<string, any>;
 declare const control: Record<string, any>;
+declare const commander: Record<string, any>;
 declare const baseAtlas: Record<string, any>;
+
+declare class GalaxyMode {
+   zoom: number;
+   focus: [number, number];
+   mouse: [number, number];
+   moving: boolean;
+   controls(): void;
+   toGameSpace(pos: [number, number]): [number, number];
+}
 
 interface Window {
    [key: string]: any;
@@ -18,24 +29,17 @@ interface Star {
    edges: number[];
 }
 
-window.IstroWarsMode = class IstroWarsMode extends window.GalaxyMode {
+window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
    static API_URL = 'http://localhost:8000/api';
-   static UPDATE_INTERVAL = 5000;
+   static UPDATE_INTERVAL = 30000;
 
    static instance: IstroWarsMode;
 
-   // from GalaxyMode
-   zoom!: number;
-   focus!: [number, number];
-   mouse!: [number, number];
-   controls!: () => void;
-   toGameSpace!: (pos: [number, number]) => [number, number];
-
    // for IstroWars
    stars: {[id: number]: Star} = {};
-   hoverStar: Star | null = null;
-   menuStar: Star | null = null;
+   hoverStarId: number = -1;
+   menuStarId: number = -1;
    lastUpdate: number = 0;
    tempv2: [number, number];
 
@@ -56,18 +60,19 @@ window.IstroWarsMode = class IstroWarsMode extends window.GalaxyMode {
 
       ui.menu = () => {
          window.istroWars.uiMenu();
-         onecup.div(() => {
-            onecup.position('absolute');
-            onecup.top(80);
-            onecup.left(0);
-            onecup.img('.hover-black',
-               {
-                  src: 'img/ui/galaxy/boss.png',
-                  width: 64,
-                  height: 64,
-               },
-               () => onecup.onclick(() => ui.go('istroWars'))
-            );
+
+         const o = onecup;
+         o.div(() => {
+            o.position('absolute');
+            o.top(80);
+            o.left(0);
+            o.img('.hover-black', {
+               src: 'img/ui/galaxy/boss.png',
+               width: 64,
+               height: 64,
+            }, () => {
+               o.onclick(() => ui.go('istroWars'));
+            });
          });
       };
    }
@@ -81,6 +86,20 @@ window.IstroWarsMode = class IstroWarsMode extends window.GalaxyMode {
       for(const star of stars) {
          this.stars[star.id] = star;
       }
+
+      onecup.refresh();
+   }
+
+   async postAPI(api: string, data?: any) {
+      const res = await fetch(IstroWarsMode.API_URL + api, {
+         method: 'POST',
+         body: data && JSON.stringify(data),
+         headers: {
+            'X-Istrowars-Name': commander.name,
+            'X-Istrowars-Key': window.rootNet.gameKey,
+         },
+      });
+      return res.json();
    }
 
    starsList() {
@@ -88,32 +107,76 @@ window.IstroWarsMode = class IstroWarsMode extends window.GalaxyMode {
    }
 
    ui() {
-      onecup.div(() => {
-         onecup.h1(() => onecup.text('IstroWars'));
-         onecup.text_align('center');
-         onecup.color('white');
-         onecup.width('100%');
+      const o = onecup;
+
+      o.div(() => {
+         o.position('absolute');
+         o.left(0); o.right(0); o.top(0); o.bottom(0);
+         o.color('white');
+         ui.topButton('menu');
       });
 
-      if(this.menuStar) {
-         const star = this.menuStar!;
-         onecup.div(() => {
-            onecup.position('absolute');
-            onecup.left(0);
-            onecup.right(0);
-            onecup.top(0);
-            onecup.bottom(0);
-            onecup.div(() => {
-               onecup.margin('100px auto');
-               onecup.width(340);
-               onecup.color('white');
-               onecup.h1(() => onecup.text(star.name));
-               onecup.text('players');
-               onecup.ul(() => {
-                  for(const player of star.players) {
-                     onecup.li(() => onecup.text(player.name));
+      if(this.menuStarId in this.stars) {
+         const star = this.stars[this.menuStarId];
+         o.div(() => {
+            o.position('absolute');
+            o.top(0);
+            o.left('calc(50% - 250px)');
+            o.width(500);
+            o.height('100%');
+
+            o.color('white');
+            o.background('rgba(0, 0, 0, .8)');
+
+            o.text_align('center');
+            o.font_size(20);
+            o.padding('0.5em 0 0');
+
+            o.img('.hover-white', {
+               src: 'img/ui/back.png',
+            }, () => {
+               o.position('absolute');
+               o.left(0); o.top(0);
+               o.onclick(() => this.menuStarId = -1);
+            });
+
+            o.h1(() => o.text(star.name));
+
+            o.text('Commanders');
+
+            o.div(() => {
+               o.margin('1em 2em');
+
+               for(const player of star.players) {
+                  let name = player.name;
+                  if(chat.players[name]) {
+                     name = `[${chat.players[name].faction}] ${name}`;
                   }
-               });
+                  o.text(name);
+               }
+            });
+
+            o.div('.hover-white', () => {
+               o.position('absolute');
+               o.bottom(0);
+               o.width('100%');
+               o.padding('2em');
+
+               if(star.players.find(p => p.name === commander.name)) {
+                  o.text('Leave System');
+                  o.onclick(() => {
+                     this.postAPI(`/stars/${star.name}/leave`)
+                        .then(() => this.update())
+                        .catch(console.error);
+                  });
+               } else {
+                  o.text('Enter System');
+                  o.onclick(() => {
+                     this.postAPI(`/stars/${star.name}/enter`)
+                        .then(() => this.update())
+                        .catch(console.error);
+                  });
+               }
             });
          });
       }
@@ -151,8 +214,8 @@ window.IstroWarsMode = class IstroWarsMode extends window.GalaxyMode {
       );
 
       // draw edges
-      if(this.hoverStar) {
-         const star = this.hoverStar;
+      if(this.hoverStarId in this.stars) {
+         const star = this.stars[this.hoverStarId];
          for(const edge of star.edges) {
             const other = this.stars[edge];
             if(!other) continue;
@@ -174,12 +237,16 @@ window.IstroWarsMode = class IstroWarsMode extends window.GalaxyMode {
 
       // draw stars
       for(const star of this.starsList()) {
+         const color = star.players.find(p => p.name === commander.name)
+            && [46, 204, 113, 255]
+            || [255, 255, 255, 255];
+
          baseAtlas.drawSprite(
             'img/galaxy/star.png',
             star.position,
             [1, 1],
             0,
-            [255, 255, 255, 255]
+            color,
          );
       }
    }
@@ -190,8 +257,10 @@ window.IstroWarsMode = class IstroWarsMode extends window.GalaxyMode {
          e.preventDefault();
       }
 
-      this.menuStar = this.hoverStar;
-      onecup.refresh();
+      if(e.which === 1 && !(this.menuStarId in this.stars)) {
+         this.menuStarId = this.hoverStarId;
+         onecup.refresh();
+      }
    }
 
    onmouseup(e: MouseEvent) {
@@ -206,10 +275,10 @@ window.IstroWarsMode = class IstroWarsMode extends window.GalaxyMode {
 
       this.mouse = this.toGameSpace([e.clientX, e.clientY]);
 
-      this.hoverStar = null;
+      this.hoverStarId = -1;
       for(const star of this.starsList()) {
          if(v2.distance(this.mouse, star.position) < 32) {
-            this.hoverStar = star;
+            this.hoverStarId = star.id;
             break;
          }
       }
