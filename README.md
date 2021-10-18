@@ -40,3 +40,8 @@ npm run db seed:run
 ```sh
 npm run watch
 ```
+
+4. Load the UI script in game
+```javascript
+onecup.script({ src: "http://localhost:8000/js/ui/mod.js" });
+```
