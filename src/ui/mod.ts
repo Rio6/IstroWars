@@ -25,7 +25,7 @@ interface Star {
    name: string;
    position: [number, number];
    players: { name: string }[];
-   ais: { name: string, player: string}[];
+   ais: { name: string, player: string }[];
    edges: number[];
 }
 
@@ -37,7 +37,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
    static instance: IstroWarsMode;
 
    // for IstroWars
-   stars: {[id: number]: Star} = {};
+   stars: { [id: number]: Star } = {};
    hoverStarId: number = -1;
    menuStarId: number = -1;
    lastUpdate: number = 0;
