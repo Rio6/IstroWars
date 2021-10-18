@@ -60,19 +60,13 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
       ui.menu = () => {
          window.istroWars.uiMenu();
-
          const o = onecup;
-         o.div(() => {
-            o.position('absolute');
-            o.top(80);
-            o.left(0);
-            o.img('.hover-black', {
-               src: 'img/ui/galaxy/boss.png',
-               width: 64,
-               height: 64,
-            }, () => {
-               o.onclick(() => ui.go('istroWars'));
-            });
+         o.after(() => {
+            for(const elem of o.lookup('[src="img/ui/menu_campaign.png"]')) {
+               const campElem = elem.parentNode;
+               campElem.onclick = () => ui.go('istroWars');
+               campElem.replaceChild(document.createTextNode('IstroWars'), elem.nextSibling);
+            }
          });
       };
    }
@@ -114,6 +108,32 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
          o.left(0); o.right(0); o.top(0); o.bottom(0);
          o.color('white');
          ui.topButton('menu');
+
+         o.div('.hover-black', () => {
+            o.display('inline-block');
+            o.height(64);
+            o.width(64);
+            o.position('relative');
+            o.img({
+               src: 'img/ui/campaign.png',
+               width:44,
+               height:44
+            }, () => {
+               o.top(0);
+               o.left(10);
+               o.position('absolute');
+            });
+            o.div(() => {
+               o.position('absolute');
+               o.line_height(12);
+               o.font_size(12);
+               o.text_align('center');
+               o.width(64);
+               o.top(44);
+               o.text('Campaign');
+            });
+            o.onclick(() => ui.go('galaxy'));
+         });
       });
 
       if(this.menuStarId in this.stars) {
