@@ -30,6 +30,12 @@ npm ci
 npm run build
 ```
 
+3. Initialize the database
+```sh
+npm run db migrate:up
+npm run db seed:run
+```
+
 3. Start the server
 ```sh
 npm run watch
