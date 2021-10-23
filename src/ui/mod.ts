@@ -174,6 +174,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                      name = `[${chat.players[name].faction}] ${name}`;
                   }
                   o.text(name);
+                  o.br();
                }
             });
 
