@@ -88,6 +88,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
       const res = await fetch(IstroWarsMode.API_URL + api, {
          method: 'POST',
          body: data && JSON.stringify(data),
+         credentials: 'include',
          headers: {
             'X-Istrowars-Name': commander.name,
             'X-Istrowars-Key': window.rootNet.gameKey,

@@ -28,7 +28,7 @@ async function main() {
    });
 
    app.use(logger(isDev() ? 'dev' : 'short'));
-   app.use(cors());
+   app.use(cors({ credentials: true }));
    app.use(body());
    app.use(router.routes());
 
