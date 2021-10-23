@@ -1,5 +1,6 @@
 import Koa from 'koa'
 import Router from '@koa/router';
+import cors from '@koa/cors';
 import send from 'koa-send';
 import logger from 'koa-log';
 import body from 'koa-body';
@@ -27,6 +28,7 @@ async function main() {
    });
 
    app.use(logger(isDev() ? 'dev' : 'short'));
+   app.use(cors());
    app.use(body());
    app.use(router.routes());
 
