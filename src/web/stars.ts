@@ -14,11 +14,15 @@ async function extraStarInfo(star: Pick<Star, 'id' | 'star_name'>) {
       .where({ star_name: star.star_name })
       .select('ai_name as name', 'player_name as player');
 
+   const factions = await db('stars_factions')
+      .where({ star_name: star.star_name })
+      .select('faction_name as name', 'influence');
+
    const edges = await db('stars_edges')
       .where({ star_a: star.id })
       .select('star_b');
 
-   return { players, ais, edges: edges.map(e => e.star_b) };
+   return { players, ais, factions, edges: edges.map(e => e.star_b) };
 }
 
 router.get('/', async ctx => {

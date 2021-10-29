@@ -26,6 +26,7 @@ interface Star {
    position: [number, number];
    players: { name: string }[];
    ais: { name: string, player: string }[];
+   factions: { name: string, influence: number }[];
    edges: number[];
 }
 
@@ -68,6 +69,15 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                campElem.replaceChild(document.createTextNode('IstroWars'), elem.nextSibling);
             }
          });
+      };
+
+      control.escape = () => {
+         if(ui.mode === 'istroWars') {
+            this.menuStarId = -1;
+            onecup.refresh();
+         } else {
+            window.istroWars.controlEscape();
+         }
       };
    }
 
@@ -150,7 +160,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
             o.background('rgba(0, 0, 0, .8)');
 
             o.text_align('center');
-            o.font_size(20);
+            o.font_size(25);
             o.padding('0.5em 0 0');
 
             o.img('.hover-white', {
@@ -163,18 +173,65 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
             o.h1(() => o.text(star.name));
 
-            o.text('Commanders');
-
+            o.text('factions');
             o.div(() => {
-               o.margin('1em 2em');
+               o.font_size(20);
+               for(const faction of star.factions.sort((a, b) => b.influence - a.influence)) {
+                  o.div(() => {
+                     o.position('relative');
+                     o.width('100%');
+                     o.div(() => {
+                        o.display('inline-block');
+                        o.width('50%');
+                        o.text_align('right');
+                        o.padding('0 1em');
+                        o.text(faction.name);
+                     });
+                     o.div(() => {
+                        o.display('inline-block');
+                        o.width('50%');
+                        o.text_align('left');
+                        o.div(() => {
+                           o.display('inline-block');
+                           o.background('white');
+                           o.width(faction.influence * 100 + '%');
+                           o.height('0.5em');
+                           o.vertical_align('middle');
+                           o.nbsp();
+                        });
+                     });
+                     o.div(() => {
+                        o.position('absolute');
+                        o.top(0); o.right('0.5em');
+                        o.text((faction.influence * 100).toFixed(0) + '%');
+                     });
+                  })
+               }
+            });
 
-               for(const player of star.players) {
+            o.br();
+
+            o.text('commanders');
+            o.div(() => {
+               o.font_size(20);
+
+               const rank = (p: typeof star.players[0]) => {
+                  return chat.players[p.name]?.rank ?? -1;
+               };
+
+               for(const player of star.players.sort((a, b) => rank(b) - rank(a))) {
                   let name = player.name;
-                  if(chat.players[name]) {
-                     name = `[${chat.players[name].faction}] ${name}`;
-                  }
-                  o.text(name);
-                  o.br();
+                  o.div(() => {
+                     o.width('100%');
+
+                     if(chat.players[name]) {
+                        o.text(`[${chat.players[name].faction}] ${name}`);
+                        o.color('white');
+                     } else {
+                        o.text(name);
+                        o.color('grey');
+                     }
+                  });
                }
             });
 
@@ -313,6 +370,7 @@ if(!window.istroWars) {
    window.istroWars = {
       windowBody: window.body,
       uiMenu: ui.menu,
+      controlEscape: control.escape,
    }
 }
 
