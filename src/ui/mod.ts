@@ -34,7 +34,7 @@ interface Star {
 window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
    static API_URL = 'http://localhost:8000/api';
-   static UPDATE_INTERVAL = 30000;
+   static UPDATE_INTERVAL = 60000;
 
    static instance: IstroWarsMode;
 
@@ -368,6 +368,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
       if(e.which === 1 && !(this.menuStarId in this.stars)) {
          this.menuStarId = this.hoverStarId;
+         this.update();
          onecup.refresh();
       }
    }
