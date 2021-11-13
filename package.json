@@ -6,6 +6,7 @@
     "build": "tsc",
     "web": "NODE_PATH=dist node dist/web",
     "logger": "NODE_PATH=dist node dist/logger",
+    "tick": "NODE_PATH=dist node dist/tick",
     "watch": "NODE_PATH=dist concurrently -n ' build,   web,logger' 'tsc -w --preserveWatchOutput' 'nodemon --exec npm run web' 'nodemon --exec npm run logger'",
     "db": "knex --knexfile db/knexfile.ts",
     "clean": "rm -rf dist"

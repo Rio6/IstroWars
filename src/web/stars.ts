@@ -6,9 +6,14 @@ import { hashAI } from 'utils';
 const router = new Router()
 
 async function extraStarInfo(star: Pick<Star, 'id' | 'star_name'>) {
+   // TODO optimize these queries
    const players = await db('stars_players')
       .where({ star_name: star.star_name })
       .select('player_name as name', 'next_star');
+
+   const incomingPlayers = await db('stars_players')
+      .where({ next_star: star.star_name })
+      .select('player_name as name', 'star_name as star');
 
    const ais = await db('stars_ais')
       .where({ star_name: star.star_name })
@@ -22,7 +27,7 @@ async function extraStarInfo(star: Pick<Star, 'id' | 'star_name'>) {
       .where({ star_a: star.id })
       .select('star_b');
 
-   return { players, ais, factions, edges: edges.map(e => e.star_b) };
+   return { players, ais, factions, incomingPlayers, edges: edges.map(e => e.star_b) };
 }
 
 router.get('/', async ctx => {

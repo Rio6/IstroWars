@@ -25,6 +25,7 @@ interface Star {
    name: string;
    position: [number, number];
    players: { name: string, next_star?: string }[];
+   incomingPlayers: { name: string, star: string }[];
    ais: { name: string, player: string }[];
    factions: { name: string, influence: number }[];
    edges: number[];
@@ -211,31 +212,68 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
             o.br();
 
+
+            const rank = (p: typeof star.players[0]) => {
+               return chat.players[p.name]?.rank ?? -1;
+            };
+
             o.text('commanders');
             o.div(() => {
                o.font_size(20);
-
-               const rank = (p: typeof star.players[0]) => {
-                  return chat.players[p.name]?.rank ?? -1;
-               };
 
                for(const player of star.players.sort((a, b) => rank(b) - rank(a))) {
                   const { name, next_star } = player;
                   o.div(() => {
                      o.width('100%');
 
+                     let text = '';
+
                      if(chat.players[name]) {
-                        o.text(`[${chat.players[name].faction}] ${name} -> ${next_star}`);
+                        const faction = chat.players[name].faction;
+                        o.text((faction && `[${faction}] ` || '') + name + (next_star && `-> ${next_star}` || ''));
                         o.color('white');
                      } else {
-                        o.text(`${name} -> ${next_star}`);
+                        o.text(name + (next_star && ` -> ${next_star}` || ''));
                         o.color('grey');
                      }
                   });
                }
             });
 
-            if(star.players.every(p => p.name !== commander.name)) {
+            o.br();
+
+            o.text('arriving');
+            o.div(() => {
+               o.font_size(20);
+
+               for(const player of star.incomingPlayers.sort((a, b) => rank(b) - rank(a))) {
+                  const { name, star } = player;
+                  o.div(() => {
+                     o.width('100%');
+
+                     let text = '';
+
+                     if(chat.players[name]) {
+                        const faction = chat.players[name].faction;
+                        o.text(`${star} -> ` + (faction && `[${faction}] ` || '') + `${name}`)
+                        o.color('white');
+                     } else {
+                        o.text(`${star} -> ${name}`);
+                        o.color('grey');
+                     }
+                  });
+               }
+            });
+
+            if(star.incomingPlayers.some(p => p.name === commander.name)) {
+               o.div(() => {
+                  o.position('absolute');
+                  o.bottom(0);
+                  o.width('100%');
+                  o.padding('2em');
+                  o.text("You will arrive at this star");
+               });
+            } else if(star.players.every(p => p.name !== commander.name)) {
                o.div('.hover-white', () => {
                   o.position('absolute');
                   o.bottom(0);
