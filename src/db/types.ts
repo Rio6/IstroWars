@@ -10,6 +10,7 @@ export interface StarsPlayer {
   id: number;
   star_name: string;
   player_name: string;
+  next_star?: string;
 }
 
 export interface StarsAI {

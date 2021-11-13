@@ -24,7 +24,7 @@ interface Star {
    id: number;
    name: string;
    position: [number, number];
-   players: { name: string }[];
+   players: { name: string, next_star?: string }[];
    ais: { name: string, player: string }[];
    factions: { name: string, influence: number }[];
    edges: number[];
@@ -220,43 +220,35 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                };
 
                for(const player of star.players.sort((a, b) => rank(b) - rank(a))) {
-                  let name = player.name;
+                  const { name, next_star } = player;
                   o.div(() => {
                      o.width('100%');
 
                      if(chat.players[name]) {
-                        o.text(`[${chat.players[name].faction}] ${name}`);
+                        o.text(`[${chat.players[name].faction}] ${name} -> ${next_star}`);
                         o.color('white');
                      } else {
-                        o.text(name);
+                        o.text(`${name} -> ${next_star}`);
                         o.color('grey');
                      }
                   });
                }
             });
 
-            o.div('.hover-white', () => {
-               o.position('absolute');
-               o.bottom(0);
-               o.width('100%');
-               o.padding('2em');
-
-               if(star.players.find(p => p.name === commander.name)) {
-                  o.text('Leave System');
-                  o.onclick(() => {
-                     this.postAPI(`/stars/${star.name}/leave`)
-                        .then(() => this.update())
-                        .catch(console.error);
-                  });
-               } else {
+            if(star.players.every(p => p.name !== commander.name)) {
+               o.div('.hover-white', () => {
+                  o.position('absolute');
+                  o.bottom(0);
+                  o.width('100%');
+                  o.padding('2em');
                   o.text('Enter System');
                   o.onclick(() => {
                      this.postAPI(`/stars/${star.name}/enter`)
                         .then(() => this.update())
                         .catch(console.error);
                   });
-               }
-            });
+               });
+            }
          });
       }
    }

@@ -8,7 +8,7 @@ const router = new Router()
 async function extraStarInfo(star: Pick<Star, 'id' | 'star_name'>) {
    const players = await db('stars_players')
       .where({ star_name: star.star_name })
-      .select('player_name as name');
+      .select('player_name as name', 'next_star');
 
    const ais = await db('stars_ais')
       .where({ star_name: star.star_name })
@@ -51,28 +51,16 @@ router.get('/:name', async ctx => {
    };
 });
 
-router.post('/:name/leave', async ctx => {
-   await db.transaction(async tsx => {
-      await tsx('stars_players')
-         .where({
-            star_name: ctx.params.name,
-            player_name: ctx.player.name,
-         })
-         .delete();
-
-      ctx.body = { success: true };
-   });
-});
-
 router.post('/:name/enter', async ctx => {
-   const { name: star_name } = ctx.params;
+   const { name } = ctx.params;
    await db.transaction(async tsx => {
       await tsx('stars_players')
          .insert({
-            star_name,
+            star_name: name,
+            next_star: name,
             player_name: ctx.player.name,
          })
-         .onConflict(['player_name']).merge();
+         .onConflict(['player_name']).merge(['next_star']);
 
       ctx.body = { success: true };
    });

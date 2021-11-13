@@ -16,6 +16,7 @@ export async function up(knex: Knex): Promise<void> {
             table.increments('id');
             table.string('star_name').notNullable().index().references('stars.star_name').onDelete('CASCADE');
             table.string('player_name').notNullable();
+            table.string('next_star').references('stars.star_name').onDelete('SET NULL');
             table.unique(['player_name']);
          })
 

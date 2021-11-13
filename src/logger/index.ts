@@ -8,13 +8,6 @@ function asyncMap<T, R>(items: T[], fn: (t: T) => Promise<R>) {
    return Promise.all(items.map(fn));
 }
 
-function influenceChange(streak: number) {
-   const maxChange = 0.5;
-   const dimRate = 2;
-   const midChange = 7;
-   return maxChange / (1 - Math.E ** (dimRate * (streak - midChange)));
-}
-
 function main() {
    const istro = new Istrolid();
 
@@ -36,10 +29,10 @@ function main() {
 
       if(players.length === 0) return;
 
-      await db.transaction(tsx => asyncMap(players, async _player => {
-         const player = _player!;
+      await db.transaction(tsx => asyncMap(players, async player => {
+         player = player!; // convince ts player is not null
 
-         const change = (player.winner ? 1 : -1) * influenceChange(0);
+         const change = (player.winner ? 0.1 : -0.1);
 
          const info = await tsx('stars_players')
             .select('stars_players.star_name', 'influence')
