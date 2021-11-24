@@ -1,7 +1,7 @@
 import Router from '@koa/router'
 
 import db, { Star } from 'db';
-import { hashAI } from 'utils';
+import { toInt } from 'utils';
 
 const router = new Router()
 
@@ -45,9 +45,9 @@ router.get('/', async ctx => {
    );
 });
 
-router.get('/:name', async ctx => {
+router.get('/:id', async ctx => {
    const star = await db('stars')
-      .where({ star_name: ctx.params.name })
+      .where({ id: toInt(ctx.params.id) })
       .first('id', 'star_name', 'faction');
 
    if(star == null) return ctx.status = 404;
@@ -58,15 +58,24 @@ router.get('/:name', async ctx => {
    };
 });
 
-router.post('/:name/enter', async ctx => {
-   const { name: star_name } = ctx.params;
+router.post('/:id/enter', async ctx => {
+   const star_id = toInt(ctx.params.id);
+
    await db.transaction(async tsx => {
-      const star = await tsx('stars').select('id').first();
-      if(!star) return;
+      const edges = await tsx('stars_players')
+         .where({ 'player_name': ctx.player.name })
+         .join('stars_edges', 'star_a', 'star_id')
+         .pluck('star_b');
+
+      if(!edges.includes(star_id)) {
+         ctx.body = { success: false };
+         return;
+      }
+
       await tsx('stars_players')
          .insert({
-            star_id: star.id,
-            next_star_id: star.id,
+            star_id: star_id,
+            next_star_id: star_id,
             player_name: ctx.player.name,
          })
          .onConflict(['player_name']).merge(['next_star_id']);

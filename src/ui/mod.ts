@@ -40,6 +40,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
    // for IstroWars
    stars: { [id: number]: Star } = {};
+   currentStar?: Star;
    hoverStarId: number = -1;
    menuStarId: number = -1;
    lastUpdate: number = 0;
@@ -88,8 +89,14 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
       const stars = await res.json();
 
       this.stars = {};
+      this.currentStar = undefined;
       for(const star of stars) {
          this.stars[star.id] = star;
+         for(const { name } of star.players) {
+            if(name === commander.name) {
+               this.currentStar = star;
+            }
+         }
       }
 
       onecup.refresh();
@@ -271,9 +278,9 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                   o.bottom(0);
                   o.width('100%');
                   o.padding('2em');
-                  o.text("You will arrive at this star");
+                  o.text("You will be arriving at this star");
                });
-            } else if(star.players.every(p => p.name !== commander.name)) {
+            } else if(star.id !== this.currentStar?.id && this.currentStar?.edges.includes(star.id)) {
                o.div('.hover-white', () => {
                   o.position('absolute');
                   o.bottom(0);
@@ -281,7 +288,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                   o.padding('2em');
                   o.text('Enter System');
                   o.onclick(() => {
-                     this.postAPI(`/stars/${star.name}/enter`)
+                     this.postAPI(`/stars/${star.id}/enter`)
                         .then(() => this.update())
                         .catch(console.error);
                   });
@@ -346,7 +353,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
       // draw stars
       for(const star of this.starsList()) {
-         const color = star.players.find(p => p.name === commander.name)
+         const color = star.id === this.currentStar?.id
             && [46, 204, 113, 255]
             || [255, 255, 255, 255];
 
@@ -367,9 +374,12 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
       }
 
       if(e.which === 1 && !(this.menuStarId in this.stars)) {
+         const update = this.menuStarId != this.hoverStarId;
          this.menuStarId = this.hoverStarId;
-         this.update();
-         onecup.refresh();
+         if(update) {
+            this.update();
+            onecup.refresh();
+         }
       }
    }
 

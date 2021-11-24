@@ -81,6 +81,14 @@ export function hashAI({ name, buildBar }: { name: string, buildBar: (Spec | str
    return hash;
 }
 
+export function toInt(str: string) {
+   const num = parseInt(str);
+   if(isNaN(num)) {
+      throw Error(`Cannot parse ${str} as int`);
+   }
+   return num;
+}
+
 export function isDev() {
    return process.env.NODE_ENV !== 'production';
 }
