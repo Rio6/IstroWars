@@ -1,5 +1,3 @@
-import { Knex } from 'knex';
-
 import Istrolid from 'istrolid';
 import * as istrostats from 'istrostats';
 import db from 'db';
@@ -35,8 +33,8 @@ function main() {
          const change = (player.winner ? 0.1 : -0.1);
 
          const info = await tsx('stars_players')
-            .select('stars_players.star_name', 'influence')
-            .join('stars_factions', 'stars_factions.star_name', 'stars_players.star_name')
+            .select('stars_players.star_id', 'influence')
+            .join('stars_factions', 'stars_factions.star_id', 'stars_players.star_id')
             .where({
                player_name: player.name,
                faction_name: player.faction,
@@ -48,7 +46,7 @@ function main() {
          const newInfluence = Math.min(1, Math.max(0, info.influence + change));
          await tsx('stars_factions')
             .where({
-               star_name: info.star_name,
+               star_id: info.star_id,
                faction_name: player.faction,
             })
             .update('influence', newInfluence);

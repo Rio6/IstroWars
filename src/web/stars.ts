@@ -5,22 +5,24 @@ import { hashAI } from 'utils';
 
 const router = new Router()
 
-async function extraStarInfo(star: Pick<Star, 'id' | 'star_name'>) {
+async function extraStarInfo(star: Pick<Star, 'id'>) {
    // TODO optimize these queries
    const players = await db('stars_players')
-      .where({ star_name: star.star_name })
-      .select('player_name as name', 'next_star');
+      .where({ star_id: star.id })
+      .join('stars', 'stars.id', 'star_id')
+      .select('player_name as name', 'star_name as next_star');
 
    const incomingPlayers = await db('stars_players')
-      .where({ next_star: star.star_name })
+      .where({ next_star_id: star.id })
+      .join('stars', 'stars.id', 'star_id')
       .select('player_name as name', 'star_name as star');
 
    const ais = await db('stars_ais')
-      .where({ star_name: star.star_name })
+      .where({ star_id: star.id })
       .select('ai_name as name', 'player_name as player');
 
    const factions = await db('stars_factions')
-      .where({ star_name: star.star_name })
+      .where({ star_id: star.id })
       .select('faction_name as name', 'influence');
 
    const edges = await db('stars_edges')
@@ -57,15 +59,17 @@ router.get('/:name', async ctx => {
 });
 
 router.post('/:name/enter', async ctx => {
-   const { name } = ctx.params;
+   const { name: star_name } = ctx.params;
    await db.transaction(async tsx => {
+      const star = await tsx('stars').select('id').first();
+      if(!star) return;
       await tsx('stars_players')
          .insert({
-            star_name: name,
-            next_star: name,
+            star_id: star.id,
+            next_star_id: star.id,
             player_name: ctx.player.name,
          })
-         .onConflict(['player_name']).merge(['next_star']);
+         .onConflict(['player_name']).merge(['next_star_id']);
 
       ctx.body = { success: true };
    });
@@ -73,6 +77,7 @@ router.post('/:name/enter', async ctx => {
 
 router.get('/:name/ai', async ctx => {
    ctx.body = await db('stars_ais')
+      .join('stars', 'star_id', 'id')
       .where({ star_name: ctx.params.name })
       .select('id', 'ai_name', 'player_name', 'build_bar');
 });
@@ -85,18 +90,20 @@ router.get('/:name/ai/:id', async ctx => {
 
 router.put('/:star_name/ai/:ai_name', async ctx => {
    const { star_name, ai_name } = ctx.params;
-   const buildBar = ctx.request.body;
+   const build_bar = ctx.request.body;
 
    await db.transaction(async tsx => {
+      const star = await tsx('stars').select('id').first();
+      if(!star) return;
       await tsx('stars_ais')
          .insert({
-            star_name,
+            star_id: star.id,
             player_name: ctx.player.name,
             ai_name,
-            build_bar: buildBar,
+            build_bar,
             hash: hashAI({
                name: ai_name,
-               buildBar,
+               buildBar: build_bar,
             }),
          })
          .onConflict(['star_name', 'player_name', 'hash']).ignore()
