@@ -59,29 +59,52 @@ router.get('/:id', async ctx => {
 });
 
 router.post('/:id/enter', async ctx => {
-   const star_id = toInt(ctx.params.id);
+   const destStar = toInt(ctx.params.id);
 
-   await db.transaction(async tsx => {
-      const edges = await tsx('stars_players')
+   const success = await db.transaction(async tsx => {
+      const dbStar = await tsx('stars_players')
          .where({ 'player_name': ctx.player.name })
-         .join('stars_edges', 'star_a', 'star_id')
-         .pluck('star_b');
+         .leftJoin('stars_edges', 'star_a', 'star_id')
+         .select('star_id', 'star_b');
 
-      if(!edges.includes(star_id)) {
-         ctx.body = { success: false };
-         return;
+      const edges = dbStar.map(s => s.star_b);
+      const srcStar: number | undefined = dbStar[0]?.star_id;
+
+      if(srcStar == null) {
+         await tsx('stars_players')
+            .insert({
+               star_id: destStar,
+               player_name: ctx.player.name,
+            })
+            .onConflict(['player_name']).ignore();
+         return true;
+      }
+
+      if(srcStar === destStar) {
+         await tsx('stars_players')
+            .where({ player_name: ctx.player.name })
+            .update({
+               star_id: srcStar,
+               next_star_id: null,
+            });
+         return true;
+      }
+
+      if(srcStar != null && !edges.includes(destStar)) {
+         return false;
       }
 
       await tsx('stars_players')
-         .insert({
-            star_id: star_id,
-            next_star_id: star_id,
+         .where({ star_id: srcStar })
+         .update({
+            next_star_id: destStar,
             player_name: ctx.player.name,
-         })
-         .onConflict(['player_name']).merge(['next_star_id']);
+         });
 
-      ctx.body = { success: true };
+      return true;
    });
+
+   ctx.body = { success };
 });
 
 export default router;

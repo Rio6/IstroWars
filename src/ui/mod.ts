@@ -272,26 +272,32 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                }
             });
 
-            if(star.incomingPlayers.some(p => p.name === commander.name)) {
-               o.div(() => {
-                  o.position('absolute');
-                  o.bottom(0);
-                  o.width('100%');
-                  o.padding('2em');
-                  o.text("You will be arriving at this star");
-               });
-            } else if(star.id !== this.currentStar?.id && this.currentStar?.edges.includes(star.id)) {
+            const isArriving = star.incomingPlayers.some(p => p.name === commander.name);
+            const isNearBy = !this.currentStar || star.id !== this.currentStar.id && this.currentStar?.edges.includes(star.id);
+
+            if(isArriving || isNearBy) {
                o.div('.hover-white', () => {
                   o.position('absolute');
                   o.bottom(0);
                   o.width('100%');
                   o.padding('2em');
-                  o.text('Enter System');
-                  o.onclick(() => {
-                     this.postAPI(`/stars/${star.id}/enter`)
-                        .then(() => this.update())
-                        .catch(console.error);
-                  });
+
+                  let destId: number | undefined;
+                  if(isArriving) {
+                     o.text('Cancel Trip');
+                     destId = this.currentStar?.id;
+                  } else {
+                     o.text('Enter System');
+                     destId = star.id;
+                  }
+
+                  if(destId != null) {
+                     o.onclick(() => {
+                        this.postAPI(`/stars/${destId}/enter`)
+                           .then(() => this.update())
+                           .catch(console.error);
+                     });
+                  }
                });
             }
          });

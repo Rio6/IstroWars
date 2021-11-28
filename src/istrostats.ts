@@ -2,7 +2,7 @@ import { httpRequest } from 'utils';
 
 const API_URL = process.env.ISTROSTATS_API ?? 'http://istrostats.r26.me/api';
 
-interface Player {
+export interface Player {
    id: number;
    name: string;
    rank: number;
