@@ -14,15 +14,15 @@ export async function up(knex: Knex): Promise<void> {
 
          .createTable('stars_players', table => {
             table.increments('id');
-            table.string('star_id').notNullable().index().references('stars.id').onDelete('CASCADE');
+            table.integer('star_id').notNullable().index().references('stars.id').onDelete('CASCADE');
             table.string('player_name').notNullable();
-            table.string('next_star_id').references('stars.id').onDelete('SET NULL');
+            table.integer('next_star_id').references('stars.id').onDelete('SET NULL');
             table.unique(['player_name']);
          })
 
          .createTable('stars_ais', table => {
             table.increments('id');
-            table.string('star_id').notNullable().index().references('stars.id').onDelete('CASCADE');
+            table.integer('star_id').notNullable().index().references('stars.id').onDelete('CASCADE');
             table.string('ai_name').notNullable();
             table.string('player_name').notNullable().index();
             table.string('hash').notNullable().index();
@@ -32,7 +32,7 @@ export async function up(knex: Knex): Promise<void> {
 
          .createTable('stars_factions', table => {
             table.increments('id');
-            table.string('star_id').notNullable().index().references('stars.id').onDelete('CASCADE');
+            table.integer('star_id').notNullable().index().references('stars.id').onDelete('CASCADE');
             table.string('faction_name').notNullable().index();
             table.float('influence', 4, 4);
             table.unique(['star_id', 'faction_name']);
