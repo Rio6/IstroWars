@@ -9,7 +9,7 @@ async function extraStarInfo(star: Pick<Star, 'id'>) {
    // TODO optimize these queries
    const players = await db('stars_players')
       .where({ star_id: star.id })
-      .join('stars', 'stars.id', 'star_id')
+      .leftJoin('stars', 'stars.id', 'next_star_id')
       .select('player_name as name', 'star_name as next_star');
 
    const incomingPlayers = await db('stars_players')
