@@ -1,4 +1,6 @@
 import db from 'db';
+import * as istroStats from 'istrostats';
+import { shuffArray } from 'utils';
 
 async function tick() {
    try {
@@ -15,6 +17,32 @@ async function tick() {
          await tsx('stars_factions')
             .whereIn('id', q => q.select('id').from('stars_factions').where('influence', '<', '0.1'))
             .del();
+
+         // Find empty stars and populate them
+         const emptyStars = await tsx('stars')
+            .leftJoin('stars_factions', 'stars.id', 'star_id')
+            .groupBy('stars.id', 'faction_name')
+            .having(tsx.raw('count(??)', 'faction_name'), '=', 0)
+            .pluck('stars.id');
+
+         shuffArray(emptyStars);
+
+         const factions = await tsx('stars_factions')
+            .distinct('faction_name')
+            .pluck('faction_name');
+
+         const activeFactions = await istroStats.activeFactions(factions, emptyStars.length).then(Object.keys);
+
+         if(activeFactions.length < emptyStars.length) {
+            emptyStars.length = activeFactions.length;
+         }
+
+         await tsx('stars_factions')
+            .insert(activeFactions.map((faction, i) => ({
+               star_id: emptyStars[i],
+               faction_name: faction,
+               influence: 0.5,
+            })));
       });
    } finally {
       db.destroy();

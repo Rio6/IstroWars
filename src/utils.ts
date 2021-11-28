@@ -89,6 +89,25 @@ export function toInt(str: string) {
    return num;
 }
 
+export function randInt(start: number, end: number) {
+   return start + Math.floor(Math.random() * (end - start));
+}
+
+export function shuffArray<T>(arr: T[]) {
+   const swap = (i: number, j: number) => {
+      const tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+   };
+
+   for(let i = 0; i < arr.length - 1; i++) {
+      const j = randInt(i, arr.length);
+      swap(i, j);
+   }
+
+   return arr;
+}
+
 export function isDev() {
    return process.env.NODE_ENV !== 'production';
 }
