@@ -25,24 +25,26 @@ async function tick() {
             .having(tsx.raw('count(??)', 'faction_name'), '=', 0)
             .pluck('stars.id');
 
-         shuffArray(emptyStars);
+         if(emptyStars.length > 0) {
+            const factions = await tsx('stars_factions')
+               .distinct('faction_name')
+               .pluck('faction_name');
 
-         const factions = await tsx('stars_factions')
-            .distinct('faction_name')
-            .pluck('faction_name');
+            const activeFactions = await istroStats.activeFactions(factions, emptyStars.length).then(Object.keys);
 
-         const activeFactions = await istroStats.activeFactions(factions, emptyStars.length).then(Object.keys);
+            if(activeFactions.length < emptyStars.length) {
+               emptyStars.length = activeFactions.length;
+            }
 
-         if(activeFactions.length < emptyStars.length) {
-            emptyStars.length = activeFactions.length;
+            shuffArray(emptyStars);
+
+            await tsx('stars_factions')
+               .insert(activeFactions.map((faction, i) => ({
+                  star_id: emptyStars[i],
+                  faction_name: faction,
+                  influence: 0.5,
+               })));
          }
-
-         await tsx('stars_factions')
-            .insert(activeFactions.map((faction, i) => ({
-               star_id: emptyStars[i],
-               faction_name: faction,
-               influence: 0.5,
-            })));
       });
    } finally {
       db.destroy();
