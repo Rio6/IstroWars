@@ -2,10 +2,6 @@ import Istrolid from 'istrolid';
 import * as istrostats from 'istrostats';
 import db from 'db';
 
-function asyncMap<T, R>(items: T[], fn: (t: T) => Promise<R>) {
-   return Promise.all(items.map(fn));
-}
-
 function main() {
    const istro = new Istrolid();
 
@@ -14,46 +10,87 @@ function main() {
    istro.on('gameReport', async report => {
       if(!report.winningSide) return;
 
-      // Grab more player info from istrostats
-      const players = (await asyncMap(report.players, async player => {
-         const playerInfo = await istrostats.player(player.name);
-         if(playerInfo) {
-            return {
-               ...playerInfo,
-               winner: player.side === report.winningSide,
-            };
-         }
-      })).filter(p => p && p.faction);
+      // Grab more player info from db
+      const dbPlayers = await Promise.all(report.players.map(async player => {
+         const dbPlayer = player.ai
+            ? null
+            : await db('stars_players')
+               .where({ player_name: player.name })
+               .first('star_id');
 
-      if(players.length === 0) return;
-
-      await db.transaction(tsx => asyncMap(players, async player => {
-         player = player!; // convince ts player is not null
-
-         const change = (player.winner ? 0.1 : -0.1);
-
-         const info = await tsx('stars_players')
-            .select('stars_players.star_id', 'influence')
-            .join('stars_factions', 'stars_factions.star_id', 'stars_players.star_id')
-            .where({
-               player_name: player.name,
-               faction_name: player.faction,
-            })
-            .first();
-
-         if(!info) return;
-
-         const newInfluence = Math.min(1, Math.max(0, info.influence + change));
-         await tsx('stars_factions')
-            .where({
-               star_id: info.star_id,
-               faction_name: player.faction,
-            })
-            .update('influence', newInfluence);
+         return {
+            ...player,
+            ...(dbPlayer ?? {}),
+            winner: player.side === report.winningSide,
+         };
       }));
+
+      let star: number | null = null;
+      for(const player of dbPlayers) {
+         if(player == null || player.star_id == null || player.ai) continue;
+         if(!star) {
+            star = player.star_id;
+         } else if(player.star_id !== star) {
+            star = null;
+            break;
+         }
+      }
+
+      if(star == null) return;
+
+      // Get more player info from istrostats
+      const players = await Promise.all(dbPlayers.map(async player => {
+         const isPlayer = player.ai
+            ? null
+            : await istrostats.player(player.name);
+         return {
+            ...player,
+            ...(isPlayer ?? {}),
+         };
+      }));
+
+      // TODO put this somewhere
+      const reward = 0.1;
+      const loss = 0.1;
+
+      // Calculate influence changes
+      const infChanges: { [name: string]: number } = {};
+
+      for(const player of players) {
+         if(!player.faction || !player.winner) continue;
+         infChanges[player.faction] = (infChanges[player.faction] ?? 0) + reward;
+      }
+
+      // Update influence
+      await db.transaction(async tsx => {
+         await tsx('stars_factions')
+            .where('star_id', star)
+            .update({
+               'influence': tsx.raw(
+                  'case faction_name ' +
+                  Object.keys(infChanges).map(() => 'when ? then min(influence + ?, 1) ').join('') +
+                  'else max(influence - ?, 0) end'
+               , [...Object.entries(infChanges).flat(), loss])
+            });
+      });
    });
 
    console.log("Logger running");
+
+   istro.emit('gameReport', {
+      winningSide: 'alpha',
+      players: [
+         {
+            name: 'R26',
+            side: 'alpha',
+         },
+         {
+            name: 'sasfafsafasf',
+            side: 'alpha',
+            faction: 'CRIP',
+         },
+      ],
+   });
 }
 
 main();
