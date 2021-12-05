@@ -1,46 +1,159 @@
 import { Knex } from 'knex';
+import { shuffArray } from '../../src/utils';
+
+const numClusters = 6;
+const numStars = 80;
+const mapRadius = 2500;
+const clusterRadius = 500;
+const minClusterDist = 1000;
+const minStarDist = 100;
+const distCost = (dist: number) => dist ** 2;
+const tau = Math.PI * 2;
+
+const baseNames = shuffArray([
+    'Akana', 'Alki', 'Arcon', 'Azee', 'Boyar', 'Chimera', 'Drakon', 'Denz',
+    'Frox', 'Laz', 'Kozak', 'Mir', 'Moss', 'Phoenix', 'Quar', 'Turon',
+]);
+
+const extraNames = shuffArray([
+    'Abellona', 'Accunyot', 'Afia', 'Afrodite', 'Ambika', 'Amesat',
+    'Ancalagon', 'Aphrodesia', 'Ardea', 'Arundhati', 'Atena', 'Athena',
+    'Bantona', 'Batonga', 'Belgat', 'Belindo', 'Bhagiratha', 'Bhagyalaskshmi',
+    'Blas', 'Briella', 'Busawe', 'Busta', 'Celosia', 'Chanda', 'Chrystophylax',
+    'Crull', 'Discobeez', 'Draca', 'Drago', 'Drayce', 'Eagon', 'Eldraxa',
+    'Ename', 'Entano', 'Eostre', 'Eraton', 'Errol', 'Fanny', 'Fantaba',
+    'Faranth', 'Favaco', 'Favonat', 'Feronia', 'Flavyol', 'Franth', 'Gaia',
+    'Gedeon', 'Getapeca', 'Googla', 'Gyo', 'Ignacia', 'Incitia', 'Ishanvi',
+    'Jango', 'Jayashri', 'Jirab', 'Kai', 'Kairos', 'Kathyayini', 'Katia',
+    'Latnamy', 'Livanna', 'Livanya', 'Maeve', 'Manbagea', 'Margoba', 'Medcono',
+    'Mina', 'Mine', 'Mondog', 'Montague', 'Moon', 'Nachik', 'Nals', 'Namge',
+    'Nitya', 'Nungagen', 'Orgata', 'Orinda', 'Percy', 'Prebant', 'Rantan',
+    'Rhaegal', 'Rhianna', 'Ruoat', 'Ryoko', 'Ryu', 'Saphira', 'Sarafina',
+    'Selene', 'Shemevat', 'Shitala', 'Sigred', 'Sindosa', 'Smaug', 'Spanka',
+    'Sulis', 'Terza', 'Tinka', 'Treshandit', 'Tundo', 'Tyran', 'Vesna',
+    'Vijayalakshmi', 'Viseron', 'Weeruni', 'Worge',
+]);
+
+type Vec2 = [number, number];
+
+class Path {
+    nodes: number[] = [];
+    length: number = Infinity;
+
+    constructor(nodes: number[] = [], length: number = Infinity) {
+        this.nodes = nodes;
+        this.length = length;
+    }
+
+    extend(node: number, distance: number) {
+        return new Path([...this.nodes, node], this.length + distance);
+    }
+}
+
+function dist(a: Vec2, b: Vec2) {
+    return Math.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2);
+}
+
+function randomPos(radius: number, offset: Vec2 = [0, 0]): Vec2 {
+    const r = Math.random() * radius;
+    const th = Math.random() * tau;
+    return [r * Math.cos(th) + offset[0], r * Math.sin(th) + offset[1]];
+}
+
+function randomElem<V>(arr: V[]) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function tooClose(point: Vec2, points: Vec2[], minDist: number) {
+    return points.some(p => dist(point, p) < minDist);
+}
+
+function pathFind(nodes: Vec2[], start: number) {
+    const paths = nodes.map(() => new Path());
+    const unvisited = new Set(paths.map((_, i) => i));
+
+    paths[start].length = 0;
+
+    let current = start;
+    while(current >= 0) {
+        unvisited.delete(current);
+
+        for(const id of unvisited) {
+            const newPath = paths[current].extend(id, distCost(dist(nodes[current], nodes[id])));
+            if(newPath.length < paths[id].length) {
+                paths[id] = newPath;
+            }
+        }
+        
+        current = -1;
+        unvisited.forEach(id => {
+            if(current < 0 || paths[id].length < paths[current].length) {
+                current = id;
+            }
+        });
+    }
+
+    return paths;
+}
 
 export async function seed(knex: Knex): Promise<void> {
-    // Deletes ALL existing entries
-    await knex('stars').del();
+    // Cluster positions
+    const clusters: Vec2[] = [];
+    for(let i = 0; i < 10000; i++) {
+        if(clusters.length >= numClusters) break;
+        const cluster = randomPos(mapRadius - clusterRadius);
+        if(!tooClose(cluster, clusters, minClusterDist)) {
+            clusters.push(cluster);
+        }
+    }
 
-    // Inserts seed entries
-    await knex('stars').insert([
-        { id:  1, star_name: 'Akana',   position: '[ 0,   0]' },
-        { id:  2, star_name: 'Alki',    position: '[ 0, 100]' },
-        { id:  3, star_name: 'Arcon',   position: '[ 0, 200]' },
-        { id:  4, star_name: 'Azee',    position: '[ 0, 300]' },
-        { id:  5, star_name: 'Boyar',   position: '[ 0, 400]' },
-        { id:  6, star_name: 'Chimera', position: '[ 0, 500]' },
-        { id:  7, star_name: 'Drakon',  position: '[ 0, 600]' },
-        { id:  8, star_name: 'Denz',    position: '[ 0, 700]' },
-        { id:  9, star_name: 'Frox',    position: '[ 0, 800]' },
-        { id: 10, star_name: 'Laz',     position: '[ 0, 900]' },
-        { id: 11, star_name: 'Kozak',   position: '[100,   0]' },
-        { id: 12, star_name: 'Mir',     position: '[200,   0]' },
-        { id: 13, star_name: 'Moss',    position: '[300,   0]' },
-        { id: 14, star_name: 'Phoenix', position: '[400,   0]' },
-        { id: 15, star_name: 'Quar',    position: '[500,   0]' },
-        { id: 16, star_name: 'Turon',   position: '[600,   0]' },
-    ]);
+    // Star positions
+    const stars: Vec2[] = [];
+    for(let i = 0; i < 10000; i++) {
+        if(stars.length >= numStars) break;
+        const star = randomPos(clusterRadius, randomElem(clusters));
+        if(!tooClose(star, stars, minStarDist)) {
+            stars.push(star);
+        }
+    }
 
-    const connect = (a: number, b: number) => [{ star_a: a, star_b: b}, { star_a: b, star_b: a}];
+    // Create edges
+    const edges = new Set<string>()
+    stars.forEach((_, star) => {
+        for(const path of pathFind(stars, star)) {
+            let prev = star;
+            for(const node of path.nodes) {
+                edges.add(JSON.stringify([prev, node]));
+                prev = node;
+            }
+        }
+    });
 
-    await knex('stars_edges').insert([
-        ...connect(1, 2),
-        ...connect(2, 3),
-        ...connect(3, 4),
-        ...connect(4, 5),
-        ...connect(5, 6),
-        ...connect(6, 7),
-        ...connect(7, 8),
-        ...connect(8, 9),
-        ...connect(9, 10),
-        ...connect(1, 11),
-        ...connect(11, 12),
-        ...connect(12, 13),
-        ...connect(13, 14),
-        ...connect(14, 15),
-        ...connect(15, 16),
-    ]);
+    // Update DB
+    await knex.transaction(async tsx => {
+        // Deletes ALL existing entries
+        await tsx('stars').del();
+        await tsx('stars_edges').del();
+        await tsx('stars_players').del();
+        await tsx('stars_factions').del();
+
+        // Add stars
+        await tsx('stars').insert([
+            ...baseNames.slice(0, stars.length),
+            ...extraNames.slice(0, Math.max(0, stars.length - baseNames.length)),
+        ].map((star_name, id) => ({
+            id,
+            star_name,
+            position: JSON.stringify(stars[id]),
+        })));
+
+        // Add edges
+        await tsx.batchInsert('stars_edges', Array.from(edges, edgeStr => {
+            const edge = JSON.parse(edgeStr);
+            return [
+                { star_a: edge[0], star_b: edge[1] },
+                { star_a: edge[1], star_b: edge[0] },
+            ]
+        }).flat(), 100);
+    });
 };

@@ -44,6 +44,8 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
    hoverStarId: number = -1;
    menuStarId: number = -1;
    lastUpdate: number = 0;
+   showEdges: boolean = false;
+
    tempv2: [number, number];
 
    constructor() {
@@ -122,6 +124,31 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
    ui() {
       const o = onecup;
 
+      const topButton = (text: string, img: string, cb: (() => void)) => {
+         o.display('inline-block');
+         o.height(64);
+         o.width(64);
+         o.img({
+            src: img,
+            width:44,
+            height:44
+         }, () => {
+            o.top(0);
+            o.left(10);
+            o.position('absolute');
+         });
+         o.div(() => {
+            o.position('absolute');
+            o.line_height(12);
+            o.font_size(12);
+            o.text_align('center');
+            o.width(64);
+            o.top(44);
+            o.text(text);
+         });
+         o.onclick(cb);
+      };
+
       o.div(() => {
          o.position('absolute');
          o.left(0); o.right(0); o.top(0); o.bottom(0);
@@ -129,29 +156,14 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
          ui.topButton('menu');
 
          o.div('.hover-black', () => {
-            o.display('inline-block');
-            o.height(64);
-            o.width(64);
             o.position('relative');
-            o.img({
-               src: 'img/ui/campaign.png',
-               width:44,
-               height:44
-            }, () => {
-               o.top(0);
-               o.left(10);
-               o.position('absolute');
-            });
-            o.div(() => {
-               o.position('absolute');
-               o.line_height(12);
-               o.font_size(12);
-               o.text_align('center');
-               o.width(64);
-               o.top(44);
-               o.text('Campaign');
-            });
-            o.onclick(() => ui.go('galaxy'));
+            topButton('Campaign', 'img/ui/campaign.png', () => ui.go('galaxy'));
+         });
+
+         o.div('.hover-black', () => {
+            o.position('absolute');
+            o.right(0);
+            topButton('Edges', 'img/ui/topbar/commander.png', () => this.showEdges = !this.showEdges);
          });
       });
 
@@ -335,28 +347,6 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
          0,
       );
 
-      // draw edges
-      if(this.hoverStarId in this.stars) {
-         const star = this.stars[this.hoverStarId];
-         for(const edge of star.edges) {
-            const other = this.stars[edge];
-            if(!other) continue;
-            const offset = this.tempv2;
-            v2.sub(other.position, star.position, offset);
-            const rot = v2.angle(offset);
-            const d = v2.mag(offset) / 437;
-            v2.scale(offset, .5)
-            v2.add(offset, star.position)
-            baseAtlas.drawSprite(
-               'img/laser01.png',
-               offset,
-               [.2, d],
-               rot,
-               [255, 255, 255, 255]
-            );
-         }
-      }
-
       // draw stars
       for(const star of this.starsList()) {
          const color = star.id === this.currentStar?.id
@@ -370,6 +360,35 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
             0,
             color,
          );
+
+         // draw edges
+         if(this.showEdges) {
+            for(const edge of star.edges) {
+               const other = this.stars[edge];
+               if(!other) continue;
+
+               const offset = this.tempv2;
+               v2.sub(other.position, star.position, offset);
+
+               const rot = v2.angle(offset);
+               const d = v2.mag(offset) / 400;
+
+               v2.scale(offset, .5)
+               v2.add(offset, star.position)
+
+               const color = star.id == this.hoverStarId
+                  ? [255, 255, 255, 100]
+                  : [255, 255, 255, 10];
+
+               baseAtlas.drawSprite(
+                  'img/laser01.png',
+                  offset,
+                  [.2, d],
+                  rot,
+                  color,
+               );
+            }
+         }
       }
    }
 
