@@ -3,11 +3,11 @@ import { shuffArray } from '../../src/utils';
 
 const numClusters = 6;
 const numStars = 80;
-const mapRadius = 2500;
+const mapRadius = 2000;
 const clusterRadius = 500;
 const minClusterDist = 1000;
 const minStarDist = 100;
-const distCost = (dist: number) => dist ** 2;
+const distCost = (dist: number) => 0.2 * dist**3;
 const tau = Math.PI * 2;
 
 const baseNames = shuffArray([
