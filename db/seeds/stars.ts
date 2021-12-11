@@ -124,6 +124,7 @@ export async function seed(knex: Knex): Promise<void> {
             let prev = star;
             for(const node of path.nodes) {
                 edges.add(JSON.stringify([prev, node]));
+                edges.add(JSON.stringify([node, prev]));
                 prev = node;
             }
         }
@@ -150,10 +151,7 @@ export async function seed(knex: Knex): Promise<void> {
         // Add edges
         await tsx.batchInsert('stars_edges', Array.from(edges, edgeStr => {
             const edge = JSON.parse(edgeStr);
-            return [
-                { star_a: edge[0], star_b: edge[1] },
-                { star_a: edge[1], star_b: edge[0] },
-            ]
-        }).flat(), 100);
+            return { star_a: edge[0], star_b: edge[1] };
+        }), 100);
     });
 };

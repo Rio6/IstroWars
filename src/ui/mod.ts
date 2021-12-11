@@ -377,8 +377,8 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                v2.add(offset, star.position)
 
                const color = star.id == this.hoverStarId
-                  ? [255, 255, 255, 100]
-                  : [255, 255, 255, 10];
+                  ? [255, 255, 255, 200]
+                  : [255, 255, 255, 15];
 
                baseAtlas.drawSprite(
                   'img/laser01.png',
