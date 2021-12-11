@@ -163,7 +163,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
          o.div('.hover-black', () => {
             o.position('absolute');
             o.right(0);
-            topButton('Edges', 'img/ui/topbar/commander.png', () => this.showEdges = !this.showEdges);
+            topButton('Edges', 'img/ui/galaxy/star.png', () => this.showEdges = !this.showEdges);
          });
       });
 
@@ -349,20 +349,21 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
       // draw stars
       for(const star of this.starsList()) {
+         const scale = 0.5 + star.edges.length * 0.2;
          const color = star.id === this.currentStar?.id
             && [46, 204, 113, 255]
             || [255, 255, 255, 255];
 
          baseAtlas.drawSprite(
-            'img/galaxy/star.png',
+            `img/galaxy/star.png`,
             star.position,
-            [1, 1],
+            [scale, scale],
             0,
             color,
          );
 
          // draw edges
-         if(this.showEdges) {
+         if(this.showEdges || star.id === this.hoverStarId) {
             for(const edge of star.edges) {
                const other = this.stars[edge];
                if(!other) continue;
