@@ -50,8 +50,8 @@ function main() {
       }));
 
       // TODO put this somewhere
-      const reward = 0.1;
-      const loss = 0.1;
+      const reward = 1;
+      const loss = 1;
 
       // Calculate influence changes
       const infChanges: { [name: string]: number } = {};

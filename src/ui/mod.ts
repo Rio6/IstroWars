@@ -214,7 +214,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                         o.div(() => {
                            o.display('inline-block');
                            o.background('white');
-                           o.width(faction.influence * 100 + '%');
+                           o.width(faction.influence + '%');
                            o.height('0.5em');
                            o.vertical_align('middle');
                            o.nbsp();
@@ -223,7 +223,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                      o.div(() => {
                         o.position('absolute');
                         o.top(0); o.right('0.5em');
-                        o.text((faction.influence * 100).toFixed(0) + '%');
+                        o.text(faction.influence.toFixed(0) + '%');
                      });
                   })
                }

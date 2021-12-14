@@ -2,6 +2,8 @@ import db from 'db';
 import * as istroStats from 'istrostats';
 import { shuffArray } from 'utils';
 
+const kickInf = 5;
+
 async function tick() {
    try {
       await db.transaction(async tsx => {
@@ -13,9 +15,9 @@ async function tick() {
             })
             .whereNotNull('next_star_id');
 
-         // Kick factions with < 0.1 influence from stars
+         // Kick factions with < 5 influence from stars
          await tsx('stars_factions')
-            .whereIn('id', q => q.select('id').from('stars_factions').where('influence', '<', '0.1'))
+            .whereIn('id', q => q.select('id').from('stars_factions').where('influence', '<', '5'))
             .del();
 
          // Find empty stars and populate them
@@ -42,7 +44,7 @@ async function tick() {
                .insert(activeFactions.map((faction, i) => ({
                   star_id: emptyStars[i],
                   faction_name: faction,
-                  influence: 0.5,
+                  influence: 50,
                })));
          }
       });

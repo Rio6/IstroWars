@@ -14,8 +14,8 @@ export async function up(knex: Knex): Promise<void> {
 
          .createTable('stars_players', table => {
             table.increments('id');
-            table.integer('star_id').notNullable().index().references('stars.id').onDelete('CASCADE');
             table.string('player_name').notNullable();
+            table.integer('star_id').notNullable().index().references('stars.id').onDelete('CASCADE');
             table.integer('next_star_id').references('stars.id').onDelete('SET NULL');
             table.unique(['player_name']);
          })
@@ -34,13 +34,14 @@ export async function up(knex: Knex): Promise<void> {
             table.increments('id');
             table.integer('star_id').notNullable().index().references('stars.id').onDelete('CASCADE');
             table.string('faction_name').notNullable().index();
-            table.float('influence', 4, 4);
+            table.integer('influence');
             table.unique(['star_id', 'faction_name']);
          })
 
          .createTable('stars_edges', table => {
             table.integer('star_a').notNullable().index().references('stars.id').onDelete('CASCADE');
             table.integer('star_b').notNullable().references('stars.id').onDelete('CASCADE');
+            table.unique(['star_a', 'star_b']);
          });
    });
 }
