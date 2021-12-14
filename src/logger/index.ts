@@ -76,21 +76,6 @@ function main() {
    });
 
    console.log("Logger running");
-
-   istro.emit('gameReport', {
-      winningSide: 'alpha',
-      players: [
-         {
-            name: 'R26',
-            side: 'alpha',
-         },
-         {
-            name: 'sasfafsafasf',
-            side: 'alpha',
-            faction: 'CRIP',
-         },
-      ],
-   });
 }
 
 main();
