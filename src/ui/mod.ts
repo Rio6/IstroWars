@@ -370,7 +370,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
    tick() {
       this.controls();
 
-      if(!simpleEquals(this.focus, this.lastFocus) || this.zoom !== this.lastZoom) {
+      if(this.showNames && (!simpleEquals(this.focus, this.lastFocus) || this.zoom !== this.lastZoom)) {
          this.lastZoom = this.zoom;
          this.lastFocus = [this.focus[0], this.focus[1]];
          onecup.refresh();
@@ -411,14 +411,6 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
             && [46, 204, 113, 255]
             || [255, 255, 255, 255];
 
-         baseAtlas.drawSprite(
-            `img/galaxy/star.png`,
-            star.position,
-            [scale, scale],
-            0,
-            color,
-         );
-
          // draw edges
          if(this.showEdges || star.id === this.hoverStarId) {
             for(const edge of star.edges) {
@@ -436,7 +428,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
                const color = star.id == this.hoverStarId
                   ? [255, 255, 255, 200]
-                  : [255, 255, 255, 15];
+                  : [255, 255, 255, 30];
 
                baseAtlas.drawSprite(
                   'img/laser01.png',
@@ -447,6 +439,15 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                );
             }
          }
+
+         // draw star
+         baseAtlas.drawSprite(
+            `img/galaxy/star.png`,
+            star.position,
+            [scale, scale],
+            0,
+            color,
+         );
       }
    }
 
