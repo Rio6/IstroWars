@@ -6,6 +6,7 @@ declare const onecup: Record<string, any>;
 declare const control: Record<string, any>;
 declare const commander: Record<string, any>;
 declare const baseAtlas: Record<string, any>;
+declare function simpleEquals<T>(a: T, b: T): boolean;
 
 declare class GalaxyMode {
    zoom: number;
@@ -13,6 +14,7 @@ declare class GalaxyMode {
    mouse: [number, number];
    moving: boolean;
    controls(): void;
+   fromGameSpace(pos: [number, number]): [number, number];
    toGameSpace(pos: [number, number]): [number, number];
 }
 
@@ -45,7 +47,11 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
    menuStarId: number = -1;
    lastUpdate: number = 0;
    showEdges: boolean = false;
+   showNames: boolean = false;
 
+   // other stuff
+   lastZoom: number = 0;
+   lastFocus: [number, number] = [0, 0];
    tempv2: [number, number];
 
    constructor() {
@@ -121,9 +127,191 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
       return Object.values(this.stars);
    }
 
+   starUi() {
+      const o = onecup;
+      const star = this.stars[this.menuStarId];
+      if(star == null) return;
+
+      o.div(() => {
+         o.position('absolute');
+         o.top(0);
+         o.left('calc(50% - 250px)');
+         o.width(500);
+         o.height('100%');
+
+         o.color('white');
+         o.background('rgba(0, 0, 0, .8)');
+
+         o.text_align('center');
+         o.font_size(25);
+         o.padding('0.5em 0 0');
+
+         o.img('.hover-white', {
+            src: 'img/ui/back.png',
+         }, () => {
+            o.position('absolute');
+            o.left(0); o.top(0);
+            o.onclick(() => this.menuStarId = -1);
+         });
+
+         o.h1(() => o.text(star.name));
+
+         if(star.factions.length > 0) {
+            o.text('factions');
+            o.div(() => {
+               o.font_size(20);
+               for(const faction of star.factions.sort((a, b) => b.influence - a.influence)) {
+                  o.div(() => {
+                     o.position('relative');
+                     o.width('90%');
+                     o.div(() => {
+                        o.display('inline-block');
+                        o.width('20%');
+                        o.text_align('right');
+                        o.padding('0 1em');
+                        o.text(faction.name);
+                     });
+                     o.div(() => {
+                        o.display('inline-block');
+                        o.width('70%');
+                        o.text_align('left');
+                        o.div(() => {
+                           o.display('inline-block');
+                           o.background('white');
+                           o.width(faction.influence + '%');
+                           o.height('0.5em');
+                           o.vertical_align('middle');
+                           o.nbsp();
+                        });
+                     });
+                     o.span(() => {
+                        o.display('inline-block');
+                        o.width('5%');
+                        o.text(faction.influence.toFixed(0) + '%');
+                     });
+                  })
+               }
+            });
+         }
+
+         o.br();
+
+
+         const rank = (p: typeof star.players[0]) => {
+            return chat.players[p.name]?.rank ?? -1;
+         };
+
+         if(star.players.length > 0) {
+            o.text('commanders');
+            o.div(() => {
+               o.font_size(20);
+
+               for(const player of star.players.sort((a, b) => rank(b) - rank(a))) {
+                  const { name, next_star } = player;
+                  o.div(() => {
+                     o.width('100%');
+
+                     let text = '';
+
+                     if(chat.players[name]) {
+                        const faction = chat.players[name].faction;
+                        o.text((faction && `[${faction}] ` || '') + name + (next_star && `-> ${next_star}` || ''));
+                        o.color('white');
+                     } else {
+                        o.text(name + (next_star && ` -> ${next_star}` || ''));
+                        o.color('grey');
+                     }
+                  });
+               }
+            });
+         }
+
+         o.br();
+
+         if(star.incomingPlayers.length > 0) {
+            o.text('arriving');
+            o.div(() => {
+               o.font_size(20);
+
+               for(const player of star.incomingPlayers.sort((a, b) => rank(b) - rank(a))) {
+                  const { name, star } = player;
+                  o.div(() => {
+                     o.width('100%');
+
+                     let text = '';
+
+                     if(chat.players[name]) {
+                        const faction = chat.players[name].faction;
+                        o.text(`${star} -> ` + (faction && `[${faction}] ` || '') + `${name}`)
+                        o.color('white');
+                     } else {
+                        o.text(`${star} -> ${name}`);
+                        o.color('grey');
+                     }
+                  });
+               }
+            });
+         }
+
+         const isArriving = star.incomingPlayers.some(p => p.name === commander.name);
+         const isNearBy = !this.currentStar || star.id !== this.currentStar.id && this.currentStar?.edges.includes(star.id);
+
+         if(isArriving || isNearBy) {
+            o.div('.hover-white', () => {
+               o.position('absolute');
+               o.bottom(0);
+               o.width('100%');
+               o.padding('2em');
+
+               let destId: number | undefined;
+               if(isArriving) {
+                  o.text('Cancel Trip');
+                  destId = this.currentStar?.id;
+               } else {
+                  o.text('Enter System');
+                  destId = star.id;
+               }
+
+               if(destId != null) {
+                  o.onclick(() => {
+                     this.postAPI(`/stars/${destId}/enter`)
+                        .then(() => this.update())
+                        .catch(console.error);
+                  });
+               }
+            });
+         }
+      });
+   }
+
    ui() {
       const o = onecup;
 
+      // Star names
+      if(this.showNames) {
+         for(const star of this.starsList()) {
+            const pos = this.fromGameSpace(star.position);
+            const faction = star.factions.reduce((a, b) => a.influence >= b.influence ? a : b);
+            o.div(() => {
+               o.position('fixed');
+               o.left(pos[0]);
+               o.top(pos[1]);
+               o.white_space('nowrap');
+               o.div(() => {
+                  o.position('relative');
+                  o.top(5);
+                  o.left('-50%');
+                  o.font_size(Math.min(100 / this.zoom, 100) + '%')
+                  o.color('white');
+                  o.background('#222');
+                  o.box_shadow('0 0 3px #222');
+                  o.text((faction && `[${faction.name}] ` || '') + star.name);
+               });
+            });
+         }
+      }
+
+      // Bottons
       const topButton = (text: string, img: string, cb: (() => void)) => {
          o.display('inline-block');
          o.height(64);
@@ -162,162 +350,31 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
          o.div('.hover-black', () => {
             o.position('absolute');
-            o.right(0);
+            o.right(64);
             topButton('Edges', 'img/ui/galaxy/star.png', () => this.showEdges = !this.showEdges);
+         });
+
+         o.div('.hover-black', () => {
+            o.position('absolute');
+            o.right(0);
+            topButton('Names', 'img/ui/galaxy/boss.png', () => this.showNames = !this.showNames);
          });
       });
 
+      // Draw menu
       if(this.menuStarId in this.stars) {
-         const star = this.stars[this.menuStarId];
-         o.div(() => {
-            o.position('absolute');
-            o.top(0);
-            o.left('calc(50% - 250px)');
-            o.width(500);
-            o.height('100%');
-
-            o.color('white');
-            o.background('rgba(0, 0, 0, .8)');
-
-            o.text_align('center');
-            o.font_size(25);
-            o.padding('0.5em 0 0');
-
-            o.img('.hover-white', {
-               src: 'img/ui/back.png',
-            }, () => {
-               o.position('absolute');
-               o.left(0); o.top(0);
-               o.onclick(() => this.menuStarId = -1);
-            });
-
-            o.h1(() => o.text(star.name));
-
-            o.text('factions');
-            o.div(() => {
-               o.font_size(20);
-               for(const faction of star.factions.sort((a, b) => b.influence - a.influence)) {
-                  o.div(() => {
-                     o.position('relative');
-                     o.width('100%');
-                     o.div(() => {
-                        o.display('inline-block');
-                        o.width('50%');
-                        o.text_align('right');
-                        o.padding('0 1em');
-                        o.text(faction.name);
-                     });
-                     o.div(() => {
-                        o.display('inline-block');
-                        o.width('50%');
-                        o.text_align('left');
-                        o.div(() => {
-                           o.display('inline-block');
-                           o.background('white');
-                           o.width(faction.influence + '%');
-                           o.height('0.5em');
-                           o.vertical_align('middle');
-                           o.nbsp();
-                        });
-                     });
-                     o.div(() => {
-                        o.position('absolute');
-                        o.top(0); o.right('0.5em');
-                        o.text(faction.influence.toFixed(0) + '%');
-                     });
-                  })
-               }
-            });
-
-            o.br();
-
-
-            const rank = (p: typeof star.players[0]) => {
-               return chat.players[p.name]?.rank ?? -1;
-            };
-
-            o.text('commanders');
-            o.div(() => {
-               o.font_size(20);
-
-               for(const player of star.players.sort((a, b) => rank(b) - rank(a))) {
-                  const { name, next_star } = player;
-                  o.div(() => {
-                     o.width('100%');
-
-                     let text = '';
-
-                     if(chat.players[name]) {
-                        const faction = chat.players[name].faction;
-                        o.text((faction && `[${faction}] ` || '') + name + (next_star && `-> ${next_star}` || ''));
-                        o.color('white');
-                     } else {
-                        o.text(name + (next_star && ` -> ${next_star}` || ''));
-                        o.color('grey');
-                     }
-                  });
-               }
-            });
-
-            o.br();
-
-            o.text('arriving');
-            o.div(() => {
-               o.font_size(20);
-
-               for(const player of star.incomingPlayers.sort((a, b) => rank(b) - rank(a))) {
-                  const { name, star } = player;
-                  o.div(() => {
-                     o.width('100%');
-
-                     let text = '';
-
-                     if(chat.players[name]) {
-                        const faction = chat.players[name].faction;
-                        o.text(`${star} -> ` + (faction && `[${faction}] ` || '') + `${name}`)
-                        o.color('white');
-                     } else {
-                        o.text(`${star} -> ${name}`);
-                        o.color('grey');
-                     }
-                  });
-               }
-            });
-
-            const isArriving = star.incomingPlayers.some(p => p.name === commander.name);
-            const isNearBy = !this.currentStar || star.id !== this.currentStar.id && this.currentStar?.edges.includes(star.id);
-
-            if(isArriving || isNearBy) {
-               o.div('.hover-white', () => {
-                  o.position('absolute');
-                  o.bottom(0);
-                  o.width('100%');
-                  o.padding('2em');
-
-                  let destId: number | undefined;
-                  if(isArriving) {
-                     o.text('Cancel Trip');
-                     destId = this.currentStar?.id;
-                  } else {
-                     o.text('Enter System');
-                     destId = star.id;
-                  }
-
-                  if(destId != null) {
-                     o.onclick(() => {
-                        this.postAPI(`/stars/${destId}/enter`)
-                           .then(() => this.update())
-                           .catch(console.error);
-                     });
-                  }
-               });
-            }
-         });
+         this.starUi();
       }
    }
 
    tick() {
       this.controls();
+
+      if(!simpleEquals(this.focus, this.lastFocus) || this.zoom !== this.lastZoom) {
+         this.lastZoom = this.zoom;
+         this.lastFocus = [this.focus[0], this.focus[1]];
+         onecup.refresh();
+      }
 
       const now = Date.now();
       if(now - this.lastUpdate > IstroWarsMode.UPDATE_INTERVAL) {
