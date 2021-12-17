@@ -1,0 +1,4 @@
+#!/usr/bin/env execlineb -P
+s6-envdir ../.env
+cd ../..
+npm run web

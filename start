@@ -1,0 +1,12 @@
+#!/usr/bin/env execlineb -P
+foreground {
+   if { test ! -r svdir/.env/SECRET }
+   redirfd -w svdir/.env/SECRET
+   pipeline { head -c 32 /dev/random }
+   base64 -w 0
+}
+foreground {
+   s6-envdir svdir/.env
+   npm run db migrate:up
+}
+s6-svscan svdir

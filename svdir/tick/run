@@ -1,0 +1,5 @@
+#!/usr/bin/env execlineb -P
+s6-envdir ../.env
+cd ../..
+snooze -H 0
+npm run tick
