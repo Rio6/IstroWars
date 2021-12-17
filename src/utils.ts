@@ -1,4 +1,6 @@
 import http from 'http';
+import fs from 'fs';
+import path from 'path';
 import { URL } from 'url';
 import sha1 from 'sha1';
 
@@ -110,4 +112,14 @@ export function shuffArray<T>(arr: T[]) {
 
 export function isDev() {
    return process.env.NODE_ENV !== 'production';
+}
+
+export function projectRoot() {
+   let currDir = __filename;
+   while(true) {
+      const parentDir = path.resolve(currDir, '..');
+      if(parentDir === currDir) return '.';
+      if(fs.readdirSync(parentDir).includes('package.json')) return parentDir;
+      currDir = parentDir;
+   }
 }

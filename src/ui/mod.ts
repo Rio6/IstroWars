@@ -22,6 +22,10 @@ interface Window {
    [key: string]: any;
 }
 
+interface Array<T> {
+   last(): T | undefined;
+}
+
 interface Star {
    id: number;
    name: string;
@@ -35,7 +39,7 @@ interface Star {
 
 window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
-   static API_URL = 'http://localhost:8000/api';
+   static API_URL = new URL('/api', Array.from(onecup.lookup('script') as HTMLScriptElement[]).last()?.src ?? 'http://localhost:8000').href;
    static UPDATE_INTERVAL = 60000;
 
    static instance: IstroWarsMode;
@@ -373,7 +377,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
       if(this.showNames && (!simpleEquals(this.focus, this.lastFocus) || this.zoom !== this.lastZoom)) {
          this.lastZoom = this.zoom;
          this.lastFocus = [this.focus[0], this.focus[1]];
-         onecup.refresh();
+         onecup.refresh(); // TODO don't spam track call
       }
 
       const now = Date.now();
