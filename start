@@ -7,8 +7,4 @@ foreground {
    pipeline { head -c 32 /dev/random }
    base64 -w 0
 }
-if {
-   s6-envdir svdir/.env
-   npm run db migrate:up
-}
 s6-svscan svdir
