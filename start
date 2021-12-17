@@ -1,11 +1,13 @@
-#!/usr/bin/env execlineb -P
+#!/usr/bin/env -S execlineb -P
+backtick -E scriptdir { dirname $0 }
+cd "$scriptdir"
 foreground {
    if { test ! -r svdir/.env/SECRET }
-   redirfd -w svdir/.env/SECRET
+   redirfd -w 1 svdir/.env/SECRET
    pipeline { head -c 32 /dev/random }
    base64 -w 0
 }
-foreground {
+if {
    s6-envdir svdir/.env
    npm run db migrate:up
 }

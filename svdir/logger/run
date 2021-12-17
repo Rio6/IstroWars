@@ -1,4 +1,4 @@
-#!/usr/bin/env execlineb -P
+#!/usr/bin/env -S execlineb -P
 s6-envdir ../.env
 cd ../..
 npm run logger
