@@ -295,7 +295,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
       if(this.showNames) {
          for(const star of this.starsList()) {
             const pos = this.fromGameSpace(star.position);
-            const faction = star.factions.reduce((a, b) => a.influence >= b.influence ? a : b);
+            const faction = star.factions.length > 0 ? star.factions.reduce((a, b) => a.influence >= b.influence ? a : b) : null;
             o.div(() => {
                o.position('fixed');
                o.left(pos[0]);
