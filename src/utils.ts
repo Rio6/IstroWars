@@ -23,7 +23,7 @@ export function httpRequest(_url: string | URL, _data: any = '', opts: object = 
    return new Promise((resolve, reject) => {
       const req = http.request({
          path: url.pathname + url.search,
-         host: url.host,
+         host: url.hostname,
          port: url.port,
          method: data && 'GET' || 'POST',
          ...opts,
