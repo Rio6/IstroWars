@@ -8,7 +8,7 @@ export async function up(knex: Knex): Promise<void> {
          .createTable('stars', table => {
             table.increments('id');
             table.string('star_name').notNullable().index();
-            table.jsonb('position').notNullable();
+            table.string('position').notNullable();
             table.unique(['star_name']);
          })
 
@@ -26,7 +26,7 @@ export async function up(knex: Knex): Promise<void> {
             table.string('ai_name').notNullable();
             table.string('player_name').notNullable().index();
             table.string('hash').notNullable().index();
-            table.jsonb('build_bar').notNullable();
+            table.string('build_bar').notNullable();
             table.unique(['star_id', 'player_name', 'hash']);
          })
 
