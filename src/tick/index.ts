@@ -16,9 +16,9 @@ async function tick() {
             .whereNotNull('next_star_id');
 
          // Kick factions with < 5 influence from stars
-         await tsx('stars_factions')
+         const factions = await tsx('stars_factions')
             .whereIn('id', q => q.select('id').from('stars_factions').where('influence', '<', '5'))
-            .del();
+            .del('faction_name');
 
          // Find empty stars and populate them
          const emptyStars = await tsx('stars')
@@ -28,9 +28,11 @@ async function tick() {
             .pluck('stars.id');
 
          if(emptyStars.length > 0) {
-            const factions = await tsx('stars_factions')
-               .distinct('faction_name')
-               .pluck('faction_name');
+            factions.concat(
+               await tsx('stars_factions')
+                  .distinct('faction_name')
+                  .pluck('faction_name')
+            );
 
             const activeFactions = await istroStats.activeFactions(factions, emptyStars.length).then(Object.keys);
 
