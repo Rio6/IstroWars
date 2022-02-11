@@ -39,7 +39,7 @@ interface Star {
 
 window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
-   static API_URL = new URL('/api', Array.from(onecup.lookup('script') as HTMLScriptElement[]).last()?.src ?? 'http://localhost:8000').href;
+   static API_URL = new URL('/api', Array.from(onecup.lookup('script') as HTMLScriptElement[]).last()?.src || 'http://localhost:8000').href;
    static UPDATE_INTERVAL = 60000;
 
    static instance: IstroWarsMode;
@@ -412,14 +412,16 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
       for(const star of this.starsList()) {
          const scale = 0.5 + star.edges.length * 0.2;
          const color = star.id === this.currentStar?.id
-            && [46, 204, 113, 255]
-            || [255, 255, 255, 255];
+            ? [46, 204, 113, 255]
+            : [255, 255, 255, 255];
 
          // draw edges
          if(this.showEdges || star.id === this.hoverStarId) {
             for(const edge of star.edges) {
                const other = this.stars[edge];
-               if(!other) continue;
+               if(!other || other.id < star.id) continue;
+
+               const next_edge = (a: Star, b: Star) => this.currentStar?.id === a.id && b.incomingPlayers.find(p => p.name === commander.name);
 
                const offset = this.tempv2;
                v2.sub(other.position, star.position, offset);
@@ -430,7 +432,9 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                v2.scale(offset, .5)
                v2.add(offset, star.position)
 
-               const color = star.id == this.hoverStarId
+               const color = next_edge(star, other) || next_edge(other, star)
+                  ? [46, 204, 113, 255]
+                  : this.hoverStarId
                   ? [255, 255, 255, 200]
                   : [255, 255, 255, 30];
 
