@@ -10,20 +10,20 @@ async function extraStarInfo(star: Pick<Star, 'id'>) {
    const players = await db('stars_players')
       .where({ star_id: star.id })
       .leftJoin('stars', 'stars.id', 'next_star_id')
-      .select('player_name as name', 'star_name as next_star');
+      .select({ name: 'player_name' }, { next_star: 'star_name' });
 
    const incomingPlayers = await db('stars_players')
       .where({ next_star_id: star.id })
       .join('stars', 'stars.id', 'star_id')
-      .select('player_name as name', 'star_name as star');
+      .select({ name: 'player_name' }, { star: 'star_name' });
 
    const ais = await db('stars_ais')
       .where({ star_id: star.id })
-      .select('ai_name as name', 'player_name as player');
+      .select({ name: 'ai_name' }, { player: 'player_name' });
 
    const factions = await db('stars_factions')
       .where({ star_id: star.id })
-      .select('faction_name as name', 'influence');
+      .select({ name: 'faction_name' }, 'influence');
 
    const edges = await db('stars_edges')
       .where({ star_a: star.id })

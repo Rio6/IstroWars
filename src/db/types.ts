@@ -29,11 +29,17 @@ export interface StarsFaction {
    influence: number;
 }
 
+export interface StarsEdges {
+   star_a: number;
+   star_b: number;
+}
+
 declare module 'knex/types/tables' {
    interface Tables {
       stars: Star;
       stars_players: StarsPlayer;
       stars_ais: StarsAI;
       stars_factions: StarsFaction;
+      stars_edges: StarsEdges;
    }
 }
