@@ -419,9 +419,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
          if(this.showEdges || star.id === this.hoverStarId) {
             for(const edge of star.edges) {
                const other = this.stars[edge];
-               if(!other || other.id < star.id) continue;
-
-               const next_edge = (a: Star, b: Star) => this.currentStar?.id === a.id && b.incomingPlayers.find(p => p.name === commander.name);
+               if(!other) continue;
 
                const offset = this.tempv2;
                v2.sub(other.position, star.position, offset);
@@ -432,9 +430,9 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                v2.scale(offset, .5)
                v2.add(offset, star.position)
 
-               const color = next_edge(star, other) || next_edge(other, star)
+               const color = this.currentStar?.id === star.id && other.incomingPlayers.find(p => p.name === commander.name)
                   ? [46, 204, 113, 255]
-                  : this.hoverStarId
+                  : star.id === this.hoverStarId
                   ? [255, 255, 255, 200]
                   : [255, 255, 255, 30];
 
