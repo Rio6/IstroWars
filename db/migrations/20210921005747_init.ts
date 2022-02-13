@@ -7,14 +7,14 @@ export async function up(knex: Knex): Promise<void> {
 
          .createTable('stars', table => {
             table.increments('id');
-            table.string('star_name').notNullable().index();
+            table.string('star_name').notNullable();
             table.string('position').notNullable();
             table.unique(['star_name']);
          })
 
          .createTable('stars_players', table => {
             table.increments('id');
-            table.string('player_name').notNullable();
+            table.string('player_name').notNullable().index();
             table.integer('star_id').notNullable().index().references('stars.id').onDelete('CASCADE');
             table.integer('next_star_id').references('stars.id').onDelete('SET NULL');
             table.unique(['player_name']);
