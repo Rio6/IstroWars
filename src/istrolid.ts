@@ -5,24 +5,27 @@ const ROOT_ADDR = 'ws://198.199.109.223:88';
 
 type EventListener<T> = (event: T) => void;
 
-interface ChatMessage {
+export interface ChatMessage {
    text: string;
    name: string;
    color: string;
    channel?: string;
 }
 
-interface GameReport {
+export interface PlayerReport {
+   name: string;
+   side: string;
+   hash: string;
+   ai: boolean;
+}
+
+export interface GameReport {
    serverName: string;
    ranked: boolean;
    time: number;
    type: string;
    winningSide: string;
-   players: {
-      name: string;
-      side: string;
-      ai: boolean;
-   }[];
+   players: PlayerReport[];
    channel: string;
 }
 

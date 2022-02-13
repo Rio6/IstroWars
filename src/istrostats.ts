@@ -15,12 +15,15 @@ export interface Player {
    lastActive?: number;
 }
 
-export async function player(name: string): Promise<Player | null> {
-   const data = await httpRequest(API_URL + '/player?ai=false&name=' + encodeURIComponent(name));
-   if(data.count > 0) {
-      return data.players[0];
+// assumes # of player to look for < istrostats limit
+export async function players(names: string | string[]): Promise<Player[]> {
+   if(!Array.isArray(names)) names = [names];
+   let url = API_URL + '/player?ai=false';
+   for(const name of names) {
+      url += '&name=' + encodeURIComponent(name);
    }
-   return null;
+   const data = await httpRequest(url);
+   return data.players;
 }
 
 export async function activeFactions(excludes: string[] = [], limit: number = 50): Promise<string[]> {

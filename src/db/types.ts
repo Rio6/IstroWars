@@ -18,6 +18,7 @@ export interface StarsAI {
    star_id: number;
    ai_name: string;
    player_name: string;
+   faction_name?: string;
    hash: string;
    build_bar: any;
 }

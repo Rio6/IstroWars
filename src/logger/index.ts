@@ -1,6 +1,9 @@
-import Istrolid from 'istrolid';
+import Istrolid, { PlayerReport } from 'istrolid';
 import * as istrostats from 'istrostats';
-import db from 'db';
+import db, { StarsPlayer } from 'db';
+
+const rewardInf = 1;
+const lossInf = 1;
 
 function main() {
    const istro = new Istrolid();
@@ -10,55 +13,68 @@ function main() {
    istro.on('gameReport', async report => {
       if(!report.winningSide) return;
 
-      // Grab more player info from db
-      const dbPlayers = await Promise.all(report.players.map(async player => {
-         const dbPlayer = player.ai
-            ? null
-            : await db('stars_players')
-               .where({ player_name: player.name })
-               .first('star_id');
+      /*
+       * skip if not all players + ai are in same star:
+       * each player + ai in winning team: influence++
+       * each faction not in winning team: influence--
+       */
 
-         return {
+      const players: {
+         [name: string]:
+            { winner: boolean } &
+            PlayerReport &
+            Partial<istrostats.Player> &
+            Partial<StarsPlayer>
+      } = Object.create(null);
+
+      // player info from report
+      for(const player of report.players) {
+         players[player.name] = {
             ...player,
-            ...(dbPlayer ?? {}),
             winner: player.side === report.winningSide,
          };
-      }));
+      }
 
-      let star: number | null = null;
-      for(const player of dbPlayers) {
-         if(player == null || player.star_id == null || player.ai) continue;
-         if(!star) {
-            star = player.star_id;
-         } else if(player.star_id !== star) {
-            star = null;
-            break;
+      // player info from db
+      for(const player of await db('stars_players')
+         .whereIn('player_name', Object.values(players).filter(p => !p.ai).map(p => p.name))
+         .select('player_name', 'star_id'))
+      {
+         Object.assign(players[player.player_name], player);
+      }
+
+      // ai info from db
+      for(const ai of await db('stars_ais')
+         .whereIn('hash', Object.values(players).filter(p => p.ai).map(p => p.hash))
+         .select('ai_name', 'faction_name', 'star_id'))
+      {
+         if(players[ai.ai_name]) {
+            players[ai.ai_name].star_id = ai.star_id;
+            players[ai.ai_name].faction = ai.faction_name;
          }
       }
 
-      if(star == null) return;
+      // check all players are in same star
+      let star = -1;
+      for(const name in players) {
+         const player = players[name];
+         if(player.star_id == null) return;
+         else if(star < 0) star = player.star_id;
+         else if(player.star_id !== star) return;
+      }
 
-      // Get more player info from istrostats
-      const players = await Promise.all(dbPlayers.map(async player => {
-         const isPlayer = player.ai
-            ? null
-            : await istrostats.player(player.name);
-         return {
-            ...player,
-            ...(isPlayer ?? {}),
-         };
-      }));
-
-      // TODO put this somewhere
-      const reward = 1;
-      const loss = 1;
+      // player info from istrostats
+      for(const player of await istrostats.players(Object.keys(players))) {
+         Object.assign(players[player.name], player);
+      }
 
       // Calculate influence changes
       const infChanges: { [name: string]: number } = {};
 
-      for(const player of players) {
+      for(const name in players) {
+         const player = players[name];
          if(!player.faction || !player.winner) continue;
-         infChanges[player.faction] = (infChanges[player.faction] ?? 0) + reward;
+         infChanges[player.faction!] = (infChanges[player.faction!] ?? 0) + rewardInf;
       }
 
       // Update influence
@@ -70,7 +86,7 @@ function main() {
                   'case faction_name ' +
                   Object.keys(infChanges).map(() => 'when ? then min(influence + ?, 1) ').join('') +
                   'else max(influence - ?, 0) end'
-               , [...Object.entries(infChanges).flat(), loss])
+               , [...Object.entries(infChanges).flat(), lossInf])
             });
       });
    });
