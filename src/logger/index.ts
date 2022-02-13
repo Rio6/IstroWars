@@ -36,8 +36,9 @@ function main() {
       }
 
       // player info from db
+      console.log(players);
       for(const player of await db('stars_players')
-         .whereIn('player_name', Object.values(players).filter(p => !p.ai).map(p => p.name))
+         .whereIn('player_name', Object.values(players).filter(p => !p.ai && p.name).map(p => p.name))
          .select('player_name', 'star_id'))
       {
          Object.assign(players[player.player_name], player);
@@ -45,7 +46,7 @@ function main() {
 
       // ai info from db
       for(const ai of await db('stars_ais')
-         .whereIn('hash', Object.values(players).filter(p => p.ai).map(p => p.hash))
+         .whereIn('hash', Object.values(players).filter(p => p.ai && p.hash).map(p => p.hash))
          .select('ai_name', 'faction_name', 'star_id'))
       {
          if(players[ai.ai_name]) {
