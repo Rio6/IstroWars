@@ -2,20 +2,34 @@
 
 Work in progress clan wars in [Istrolid](http://www.istrolid.com).
 
-# Overview
+# Current Rules
+- Each player can plot to move to an adjacent star, the movement is performed
+  at the end of each day.
+- When two or more players from the same star finishes a battle, the influence
+  of factions on that star increases if the winning players wears their faction
+  tag.
+- When a faction's influence reaches 80% on a star, it expands into one
+  adjacent star.
+- When a faction's infleunce drops to 5%, they are kicked from the star.
+- When there are less than 20 factions on the map and there exists stars with
+  no factions, a new faction gets added.
+- There's no anti-farming measures right now, so it's basically a farming game :P
+
+# Code Overview
 Currently, there are three components in IstroWars:
 - Game logger
 - Web server
-- UI as Istrolid modding script
+- Tick runner
+- UI as an Istrolid mod
 
 The game logger in `src/logger` listens to game events and update the database.
 
 The web server in `src/web` contains a REST API for clients to query and update the database.
 It also serves the static files, including the modding script.
 
-The UI script in `src/ui` communicates with the server through REST and displays a UI in game.
+The tick runner runs everyday and it handles faction expansion, player movement, etc.
 
-There will be another component that updates game state from a timer.
+The UI script in `src/ui` communicates with the server through REST and displays a UI in game.
 
 # Local Development
 1. Clone the repository
