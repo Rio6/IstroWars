@@ -36,6 +36,10 @@ function main() {
          };
       }
 
+      if(Object.keys(players).length <= 1) {
+         return;
+      }
+
       // player info from db
       for(const player of await db('stars_players')
          .whereIn('player_name', Object.values(players).filter(p => !p.ai).map(p => p.name))
