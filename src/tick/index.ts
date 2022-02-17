@@ -1,6 +1,6 @@
 import db from 'db';
 import * as istroStats from 'istrostats';
-import { shuffArray, joinRows } from 'utils';
+import { shuffArray } from 'utils';
 
 const kickInf = 5;
 const spreadInf = 80;
@@ -30,8 +30,14 @@ async function tick() {
             .del();
 
          // Expand factions with >= 80 influence
-         const expansions = joinRows('faction_name',
-            await tsx('stars')
+         const expansions: {
+            [name: string]: {
+               faction_name: string,
+               from: number,
+               to: number,
+               target_count: number,
+            }[]
+         } = await tsx('stars')
                .join('stars_edges', 'stars.id', 'star_a')
                .join({ 'factions': 'stars_factions' }, 'stars.id', 'factions.star_id')
                .join({ 'nearby': 'stars' }, 'nearby.id', 'star_b')
@@ -49,13 +55,16 @@ async function tick() {
                      .where('faction_name', tsx.ref('nearby_factions.faction_name'))
                )
                .select('factions.faction_name', { from: 'stars.id' }, { to: 'nearby.id' })
-               .count({ 'target_count': 'nearby_factions.id' }) as {
-                  faction_name: string,
-                  from: number,
-                  to: number,
-                  target_count: number,
-               }[]
-         );
+               .count({ 'target_count': 'nearby_factions.id' })
+               .then(rows => rows.reduce((result, row) => {
+                  const key = row.target_count as string;
+                  if(result[key] == null) {
+                     result[key] = [row];
+                  } else {
+                     result[key].push(row);
+                  }
+                  return result;
+               }, Object.create(null)));
 
          if(Object.keys(expansions).length > 0) {
             await tsx('stars_factions').insert(

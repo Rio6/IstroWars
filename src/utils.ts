@@ -123,15 +123,3 @@ export function projectRoot() {
       currDir = parentDir;
    }
 }
-
-export function joinRows<T, K extends keyof T & string>(key: K, rows: T[]): { [key: string]: Omit<T, K>[] } {
-   return rows.reduce((result, row) => {
-      const { [key]: keyvalue, ...newrow } = row;
-      if(result[keyvalue] == null) {
-         result[keyvalue] = [newrow];
-      } else {
-         result[keyvalue].push(newrow);
-      }
-      return result;
-   }, Object.create(null));
-}

@@ -4,6 +4,7 @@ export interface Star {
    id: number;
    star_name: string;
    faction: string;
+   position: string;
 }
 
 export interface StarsPlayer {
@@ -20,7 +21,7 @@ export interface StarsAI {
    player_name: string;
    faction_name?: string;
    hash: string;
-   build_bar: any;
+   build_bar: string;
 }
 
 export interface StarsFaction {
