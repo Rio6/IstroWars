@@ -61,14 +61,17 @@ function main() {
       }
       */
 
-      // check all players are in same star
+      // check all winners are in same star
       let star = -1;
       for(const name in players) {
          const player = players[name];
+         if(!player.winner) continue;
          if(player.star_id == null) return;
          else if(star < 0) star = player.star_id;
          else if(player.star_id !== star) return;
       }
+
+      if(star === -1) return;
 
       // player info from istrostats
       for(const player of await istrostats.players(Object.keys(players))) {
