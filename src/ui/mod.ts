@@ -180,6 +180,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                   o.div(() => {
                      o.position('relative');
                      o.width('90%');
+                     o.margin('0 auto')
 
                      o.div(() => {
                         o.display('inline-block');
@@ -205,7 +206,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
                      o.div(() => {
                         o.display('inline-block');
-                        o.width('60%');
+                        o.width('50%');
                         o.text_align('left');
                         o.div(() => {
                            o.display('inline-block');
@@ -219,7 +220,8 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
                      o.span(() => {
                         o.display('inline-block');
-                        o.width('5%');
+                        o.width('15%');
+                        o.text_align('right');
                         o.text(faction.influence.toFixed(0) + '%');
                      });
                   })

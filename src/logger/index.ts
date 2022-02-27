@@ -42,7 +42,7 @@ function main() {
 
       // player info from db
       for(const player of await db('stars_players')
-         .whereIn('player_name', Object.values(players).filter(p => !p.ai).map(p => p.name))
+         .whereIn('player_name', Object.keys(players))
          .select('player_name', 'star_id'))
       {
          Object.assign(players[player.player_name], player);
