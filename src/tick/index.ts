@@ -29,25 +29,6 @@ async function tick() {
             .whereIn('id', q => q.select('id').from('stars_factions').where('influence', '<', kickInf))
             .del();
 
-         // Make factions with highest influence the control faction
-         // on stars that are not defended by AI
-         const hasNewFactions = await tsx('stars')
-            .join('stars_factions', q => {
-               q.on('stars.id', 'star_id');
-               q.onNull('control_faction')
-               q.orOn('stars.control_faction', '!=', 'faction_name')
-            })
-            .where('stars_factions.id', tsx({ 'factions': 'stars_factions' })
-                  .where('factions.star_id', tsx.ref('stars.id'))
-                  .orderBy('influence', 'desc')
-                  .first('id')
-            )
-            .select('stars.id', 'stars_factions.faction_name');
-
-         await Promise.all(hasNewFactions.map(async ({ id, faction_name }) => {
-            await tsx('stars').where({ id }).update({ control_faction: faction_name });
-         }));
-
          // Expand controlling factions with >= 80 influence
          const expansions: {
             [name: string]: {
@@ -79,7 +60,7 @@ async function tick() {
                .select('factions.faction_name', { from: 'stars.id' }, { to: 'nearby.id' })
                .count({ 'target_count': 'nearby_factions.id' })
                .then(rows => rows.reduce((result, row) => {
-                  const key = row.target_count as string;
+                  const key: string = (row as any).faction_name;
                   if(result[key] == null) {
                      result[key] = [row];
                   } else {
@@ -121,6 +102,25 @@ async function tick() {
                }))
             );
          }
+
+         // Make factions with highest influence the control faction
+         // on stars that are not defended by AI
+         const hasNewFactions = await tsx('stars')
+            .join('stars_factions', q => {
+               q.on('stars.id', 'star_id');
+               q.onNull('control_faction')
+               q.orOn('stars.control_faction', '!=', 'faction_name')
+            })
+            .where('stars_factions.id', tsx({ 'factions': 'stars_factions' })
+                  .where('factions.star_id', tsx.ref('stars.id'))
+                  .orderBy('influence', 'desc')
+                  .first('id')
+            )
+            .select('stars.id', 'stars_factions.faction_name');
+
+         await Promise.all(hasNewFactions.map(async ({ id, faction_name }) => {
+            await tsx('stars').where({ id }).update({ control_faction: faction_name });
+         }));
       });
    } finally {
       db.destroy();
