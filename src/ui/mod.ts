@@ -30,6 +30,7 @@ interface Star {
    id: number;
    name: string;
    position: [number, number];
+   controlFaction?: string;
    players: { name: string, next_star?: string }[];
    incomingPlayers: { name: string, star: string }[];
    ais: { name: string, player: string }[];
@@ -93,6 +94,10 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
             window.istroWars.controlEscape();
          }
       };
+   }
+
+   formatFaction(star: Star) {
+      return star.controlFaction ? `[${star.controlFaction}] ${star.name}` : star.name;
    }
 
    async update() {
@@ -164,10 +169,32 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
             o.text('factions');
             o.div(() => {
                o.font_size(20);
-               for(const faction of star.factions.sort((a, b) => b.influence - a.influence)) {
+
+               const factions = star.factions.sort((a, b) => {
+                  if(a.name === star.controlFaction) return -Infinity;
+                  if(b.name === star.controlFaction) return Infinity;
+                  return b.influence - a.influence;
+               });
+
+               for(const faction of factions) {
                   o.div(() => {
                      o.position('relative');
                      o.width('90%');
+
+                     o.div(() => {
+                        o.display('inline-block');
+                        o.width('5%');
+                        o.text_align('right');
+
+                        if(faction.name === star.controlFaction) {
+                           o.img({ src: 'img/ui/galaxy/boss.png' }, () => {
+                              o.position('relative');
+                              o.width('2em');
+                              o.top('0.5em');
+                           });
+                        }
+                     });
+
                      o.div(() => {
                         o.display('inline-block');
                         o.width('20%');
@@ -175,9 +202,10 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                         o.padding('0 1em');
                         o.text(faction.name);
                      });
+
                      o.div(() => {
                         o.display('inline-block');
-                        o.width('70%');
+                        o.width('60%');
                         o.text_align('left');
                         o.div(() => {
                            o.display('inline-block');
@@ -188,6 +216,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                            o.nbsp();
                         });
                      });
+
                      o.span(() => {
                         o.display('inline-block');
                         o.width('5%');
@@ -295,7 +324,6 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
       if(this.showNames) {
          for(const star of this.starsList()) {
             const pos = this.fromGameSpace(star.position);
-            const faction = star.factions.length > 0 ? star.factions.reduce((a, b) => a.influence >= b.influence ? a : b) : null;
             o.div(() => {
                o.position('fixed');
                o.left(pos[0]);
@@ -309,7 +337,7 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
                   o.color('white');
                   o.background('#222');
                   o.box_shadow('0 0 3px #222');
-                  o.text((faction && `[${faction.name}] ` || '') + star.name);
+                  o.text(this.formatFaction(star));
                });
             });
          }

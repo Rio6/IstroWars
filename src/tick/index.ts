@@ -29,7 +29,26 @@ async function tick() {
             .whereIn('id', q => q.select('id').from('stars_factions').where('influence', '<', kickInf))
             .del();
 
-         // Expand factions with >= 80 influence
+         // Make factions with highest influence the control faction
+         // on stars that are not defended by AI
+         const hasNewFactions = await tsx('stars')
+            .join('stars_factions', q => {
+               q.on('stars.id', 'star_id');
+               q.onNull('control_faction')
+               q.orOn('stars.control_faction', '!=', 'faction_name')
+            })
+            .where('stars_factions.id', tsx({ 'factions': 'stars_factions' })
+                  .where('factions.star_id', tsx.ref('stars.id'))
+                  .orderBy('influence', 'desc')
+                  .first('id')
+            )
+            .select('stars.id', 'stars_factions.faction_name');
+
+         await Promise.all(hasNewFactions.map(async ({ id, faction_name }) => {
+            await tsx('stars').where({ id }).update({ control_faction: faction_name });
+         }));
+
+         // Expand controlling factions with >= 80 influence
          const expansions: {
             [name: string]: {
                faction_name: string,
@@ -39,14 +58,17 @@ async function tick() {
             }[]
          } = await tsx('stars')
                .join('stars_edges', 'stars.id', 'star_a')
-               .join({ 'factions': 'stars_factions' }, 'stars.id', 'factions.star_id')
+               .join({ 'factions': 'stars_factions' }, q => {
+                  q.on('stars.id', 'factions.star_id');
+                  q.on('stars.control_faction', 'factions.faction_name');
+               })
                .join({ 'nearby': 'stars' }, 'nearby.id', 'star_b')
                .leftJoin({ 'nearby_factions': 'stars_factions' }, 'nearby.id', 'nearby_factions.star_id')
                .groupBy('nearby.id')
                .havingRaw('count(nearby_factions.faction_name) <= ?', maxStarFacions)
                .where('factions.influence', '>=', spreadInf)
                .where(
-                  'factions.influence', '=',
+                  'factions.influence',
                   tsx('stars_factions').where('factions.star_id', tsx.ref('stars.id')).max('influence')
                )
                .whereNotExists(

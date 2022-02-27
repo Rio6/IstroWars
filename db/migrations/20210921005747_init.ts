@@ -9,6 +9,7 @@ export async function up(knex: Knex): Promise<void> {
             table.increments('id');
             table.string('star_name').notNullable();
             table.string('position').notNullable();
+            table.string('control_faction').references('stars_factions.faction_name').onDelete('SET NULL');
             table.unique(['star_name']);
          })
 
@@ -23,9 +24,9 @@ export async function up(knex: Knex): Promise<void> {
          .createTable('stars_ais', table => {
             table.increments('id');
             table.integer('star_id').notNullable().index().references('stars.id').onDelete('CASCADE');
+            table.boolean('defeated').notNullable();
             table.string('ai_name').notNullable();
             table.string('player_name').notNullable().index();
-            table.string('faction_name');
             table.string('hash').notNullable().index();
             table.string('build_bar').notNullable();
             table.unique(['star_id', 'player_name', 'hash']);

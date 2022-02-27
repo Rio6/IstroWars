@@ -3,8 +3,8 @@ import { knex } from 'knex';
 export interface Star {
    id: number;
    star_name: string;
-   faction: string;
    position: string;
+   control_faction?: string;
 }
 
 export interface StarsPlayer {
@@ -19,9 +19,9 @@ export interface StarsAI {
    star_id: number;
    ai_name: string;
    player_name: string;
-   faction_name?: string;
    hash: string;
    build_bar: string;
+   defeated: boolean;
 }
 
 export interface StarsFaction {

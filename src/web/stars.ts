@@ -15,6 +15,7 @@ const starQuery = db('stars')
       'stars.id',
       'stars.star_name',
       'stars.position',
+      'stars.control_faction',
       { player_name: 'players.player_name' },
       { player_next_star: 'players.next_star_id' },
       { incoming_name: 'incoming_players.player_name' },
@@ -44,6 +45,7 @@ function reduceStar(stars: Awaited<typeof starQuery>) {
          id: star.id,
          name: star.star_name,
          position: JSON.parse(star.position),
+         controlFaction: star.control_faction,
       })[star.id];
 
       newstar.players = tryAdd(newstar.players, star.player_name, {
