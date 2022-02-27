@@ -1,0 +1,55 @@
+body {
+   min-height: 100%;
+   font-size: 20pt;
+   font-family: "Arial", "Helvetica", "sans-serif";
+   color: white;
+
+   background-image: url("https://www.istrolid.com/img/bg/galaxy.png");
+   background-color: rgb(11, 25, 46);
+   background-repeat: no-repeat;
+   background-size: cover;
+   background-position: center;
+   background-attachment: fixed;
+}
+
+span {
+   display: inline-block;
+}
+
+#content {
+   position: absolute;
+   top: 0;
+   left: 0;
+   right: 0;
+
+   width: 50%;
+   height: 100vh;
+   max-width: 15cm;
+
+   margin: 0 auto;
+   padding: 0 5%;
+   background-color: rgba(0, 0, 0, 0.5);
+}
+
+.faction-info {
+   margin: 0.5em 0 0;
+}
+
+.faction-name {
+   font-weight: bold;
+}
+
+.faction-name, .star-name {
+   width: 60%;
+}
+
+.star-count, .star-influence {
+   width: 20%;
+   min-width: 4em;
+   text-align: right;
+}
+
+.star-info {
+   width: 80%;
+   margin: 0 auto;
+}

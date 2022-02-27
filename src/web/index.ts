@@ -23,8 +23,16 @@ async function main() {
    router.use(auth);
    router.use('/api/stars', starsRouter.routes());
 
+   router.get('/(index\.html)?', async ctx => {
+      await send(ctx, 'index.html', { root: __dirname + '/../../static/' });
+   });
+
+   router.get('/static/:path(.*)', async ctx => {
+      await send(ctx, ctx.params.path, { root: __dirname + '/../../static/' });
+   });
+
    router.get('/js/:path(.*)', async ctx => {
-      const result = await send(ctx, ctx.params.path, { root: __dirname + '/..' });
+      await send(ctx, ctx.params.path, { root: __dirname + '/..' });
    });
 
    app.use(logger(isDev() ? 'dev' : 'short'));

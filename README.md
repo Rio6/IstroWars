@@ -5,12 +5,11 @@ Work in progress clan wars in [Istrolid](http://www.istrolid.com).
 # Current Rules
 - Each player can plot to move to an adjacent star, the movement is performed
   at the end of each day.
-- When two or more players from the same star finishes a battle, the influence
-  of factions on that star increases if the winning players wears their faction
-  tag.
+- When players from the same star wins a battle, the influence of factions on
+  that star increases if the winning players wears their faction tag.
 - When a faction's influence reaches 80% on a star, it expands into one
   adjacent star.
-- When a faction's infleunce drops to 5%, they are kicked from the star.
+- When a faction's influence drops to 5%, they are kicked from the star.
 - When there are less than 20 factions on the map and there exists stars with
   no factions, a new faction gets added.
 - There's no anti-farming measures right now, so it's basically a farming game :P
