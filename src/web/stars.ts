@@ -76,7 +76,11 @@ function reduceStar(stars: Awaited<typeof starQuery>) {
    }, Object.create(null)))
    .map((star: any) => {
       for(const key of ['players', 'incomingPlayers', 'ais', 'factions', 'edges']) {
-         star[key] = Object.values(star[key] ?? {});
+         if(star[key] && Object.keys(star[key]).length > 0) {
+            star[key] = Object.values(star[key]);
+         } else {
+            delete star[key];
+         }
       }
       return star;
    });

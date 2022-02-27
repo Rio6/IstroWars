@@ -109,6 +109,11 @@ window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
       this.currentStar = undefined;
       for(const star of stars) {
          this.stars[star.id] = star;
+         for(const key of ['players', 'incomingPlayers', 'ais', 'factions', 'edges'] as const) {
+            if(this.stars[star.id][key] == null) {
+               this.stars[star.id][key] = [];
+            }
+         }
          for(const { name } of star.players) {
             if(name === commander.name) {
                this.currentStar = star;
