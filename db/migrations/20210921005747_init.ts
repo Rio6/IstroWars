@@ -9,7 +9,7 @@ export async function up(knex: Knex): Promise<void> {
             table.increments('id');
             table.string('star_name').notNullable();
             table.string('position').notNullable();
-            table.string('control_faction').references('stars_factions.faction_name').onDelete('SET NULL');
+            table.string('control_faction');
             table.unique(['star_name']);
          })
 
@@ -44,7 +44,7 @@ export async function up(knex: Knex): Promise<void> {
             table.integer('star_a').notNullable().index().references('stars.id').onDelete('CASCADE');
             table.integer('star_b').notNullable().references('stars.id').onDelete('CASCADE');
             table.unique(['star_a', 'star_b']);
-         });
+         })
    });
 }
 
