@@ -1,4 +1,10 @@
 async function refresh() {
+
+   const code = document.getElementById('code');
+   if(code) {
+      code.href = location.origin + '/js/ui/mod.js';
+   }
+
    const container = document.getElementById('factions');
    if(!container) return;
 
@@ -50,5 +56,3 @@ async function refresh() {
       return elem;
    }));
 }
-
-window.onload = refresh;

@@ -40,7 +40,7 @@ interface Star {
 
 window.IstroWarsMode = class IstroWarsMode extends GalaxyMode {
 
-   static API_URL = new URL('/api', Array.from(onecup.lookup('script') as HTMLScriptElement[]).last()?.src || 'http://localhost:8000').href;
+   static API_URL = 'https://istrowars.r26.me/api';
    static UPDATE_INTERVAL = 60000;
 
    static instance: IstroWarsMode;
