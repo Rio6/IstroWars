@@ -45,7 +45,6 @@ async function tick() {
                })
                .join({ 'nearby': 'stars' }, 'nearby.id', 'star_b')
                .leftJoin({ 'nearby_factions': 'stars_factions' }, 'nearby.id', 'nearby_factions.star_id')
-               .groupBy('nearby.id')
                .havingRaw('count(nearby_factions.faction_name) <= ?', maxStarFacions)
                .where('factions.influence', '>=', spreadInf)
                .where(
@@ -57,6 +56,7 @@ async function tick() {
                      .where('star_id', tsx.ref('stars.id'))
                      .where('faction_name', tsx.ref('nearby_factions.faction_name'))
                )
+               .groupBy('factions.faction_name', 'stars.id', 'nearby.id')
                .select('factions.faction_name', { from: 'stars.id' }, { to: 'nearby.id' })
                .count({ 'target_count': 'nearby_factions.id' })
                .then(rows => rows.reduce((result, row) => {
