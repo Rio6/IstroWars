@@ -2,23 +2,23 @@
 <head>
    <meta charset="utf-8" />
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <link rel="stylesheet" href="static/index.css" />
+   <link rel="icon" type="image/x-icon" href="/static/favicon.png">
+   <link rel="stylesheet" href="/static/global.css" />
+   <link rel="stylesheet" href="/static/index.css" />
    <script src="/js/ui/web.js"></script>
+   <title>IstroWars</title>
 </head>
 <body>
-   <div id="content">
+   <div class="content">
       <center>
          <h1>IstroWars</h1>
          Top Factions
       </center>
       <div id="factions"></div>
-   </div>
-   <div id="tip">
-      <details>
-         <summary>Want to play?</summary>
-         Load <a target="_blank" id="code">this script</a> in the game console
-         then go to the main menu.
-      </details>
+
+      <div class="tip">
+         <a href="/static/help.html">[More Info]</a>
+      </div>
    </div>
 
    <script>refresh()</script>

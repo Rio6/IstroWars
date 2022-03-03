@@ -1,63 +1,17 @@
-html {
-   font-family: "Arial", "Helvetica", "sans-serif";
-   font-size: 20pt;
+.tip {
+   position: absolute;
+   top: 0.5em;
+   right: 0.5em;
 }
 
-body {
-   min-height: 100%;
+.tip a {
    color: white;
-
-   background-image: url("https://www.istrolid.com/img/bg/galaxy.png");
-   background-color: rgb(11, 25, 46);
-   background-repeat: no-repeat;
-   background-size: cover;
-   background-position: center;
-   background-attachment: fixed;
-}
-
-span {
-   display: inline-block;
-}
-
-a {
-   color: lightblue;
-}
-
-#tip {
-   position: absolute;
-   top: 0;
-   left: 0;
-   background-color: black;
-   font-size: 0.8rem;
-}
-
-#code {
-   font-family: monospace;
-}
-
-#content {
-   position: absolute;
-   top: 0;
-   left: 0;
-   right: 0;
-
-   width: 50%;
-   height: 100vh;
-   max-width: 15cm;
-
-   margin: 0 auto;
-   padding: 0 5%;
-   background-color: rgba(0, 0, 0, 0.5);
-}
-
-@media only screen and (max-width: 400px) {
-   html {
-      font-size: 12pt;
-   }
+   text-decoration: none;
 }
 
 .faction-info {
    margin: 0.5em 0 0;
+   font-size: 1.5rem;
 }
 
 .faction-name {

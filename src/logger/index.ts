@@ -11,7 +11,7 @@ function main() {
    istro.on('error', console.error);
 
    istro.on('gameReport', async report => {
-      if(!report.winningSide) return;
+      if(!report.winningSide || !(report.type in ['1v1r', '1v1t', '1v1', '2v2', '3v3'])) return;
 
       /*
        * skip if not all players + ai are in same star:
@@ -47,19 +47,6 @@ function main() {
       {
          Object.assign(players[player.player_name], player);
       }
-
-      // ai info from db
-      /*
-      for(const ai of await db('stars_ais')
-         .whereIn('hash', Object.values(players).filter(p => p.ai && p.hash).map(p => p.hash))
-         .select('ai_name', 'faction_name', 'star_id'))
-      {
-         if(players[ai.ai_name]) {
-            players[ai.ai_name].star_id = ai.star_id;
-            players[ai.ai_name].faction = ai.faction_name;
-         }
-      }
-      */
 
       // check all winners are in same star
       let star = -1;

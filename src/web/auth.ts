@@ -12,7 +12,7 @@ export async function auth(ctx: Context, next: Next) {
    } catch(e) {
       const name = ctx.get('x-istrowars-name');
       const gameKey = ctx.get('x-istrowars-key');
-      if(await Istrolid.checkPlayer(name, gameKey)) {
+      if(name && gameKey && await Istrolid.checkPlayer(name, gameKey)) {
          ctx.player = {
             name: name,
          };

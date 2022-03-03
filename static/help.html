@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<head>
+   <meta charset="utf-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link rel="icon" type="image/x-icon" href="/static/favicon.png">
+   <link rel="stylesheet" href="/static/global.css" />
+   <title>IstroWars Help</title>
+</head>
+<body>
+   <div class="content">
+      <center>
+         <h1>IstroWars</h1>
+      </center>
+
+      <h2>Stars</h2>
+      The star names are from old server names, plus a bunch of auto generated names.
+      They are connected to each other for players and factions to move.
+
+      <h2>Factions</h2>
+      The faction list is retrieved from <a href="https://istrostats.r26.me">IstroStats</a>.
+      Each faction has an influence value on each star. The influence changes based on
+      the games players in the star play. A faction expands into nearby star when
+      its influence reaches 80%, but if it drops below 5%, it gets kicked from the star.
+
+      <h2>Players</h2>
+      Each day, a player can move to a nearby star. They can also change their faction
+      tag in game at any time. Their location and faction determines the influence change
+      of local factions when they play games.
+
+      <h2>Influence</h2>
+      When a game ends and all of these conditions are met:
+      <ul>
+         <li>The game mode is 1v1, 1v1r, 1v1t, 2v2, or 3v3</li>
+         <li>There is a winning team</li>
+         <li>All players on the winning team are in the same star</li>
+      </ul>
+      then the influence of each faction on the star would change.  For each
+      faction in the star, their influence is increased by 1% for each player
+      in the winning team who wears its tag. If there are no player in the
+      winning team that wears its tag, the influence is deccreased by 1% instead.
+
+      <h2>How to Join?</h2>
+      Load the script <a href="/js/ui/mod.js" target="_blank">here</a> to
+      access the IstroWars mode from the main menu. Alternatively, one can also
+      use this code:
+      <div class="code">
+         onecup.script({src:"<span id="scripturl"></span>"})
+      </div>
+      to load the latest code automatically.
+      <script>
+         document.getElementById('scripturl').innerText = location.origin + '/js/ui/mod.js';
+      </script>
+   </div>
+</body>
+
