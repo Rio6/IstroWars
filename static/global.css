@@ -49,3 +49,14 @@ a {
    font-size: 0.7rem;
    color: lightgreen;
 }
+
+.tip {
+   position: absolute;
+   top: 0.5em;
+   right: 0.5em;
+}
+
+.tip a {
+   color: white;
+   text-decoration: none;
+}
