@@ -20,6 +20,15 @@ async function main() {
    else
       throw new Error("No secret provided");
 
+   router.use(async (ctx, next) => {
+      const forwardedFor = ctx.get('x-forwarded-for');
+      if(forwardedFor) {
+         const origin = forwardedFor.split(',')[0];
+         ctx.request.ip = origin;
+      }
+      return next();
+   });
+
    router.use(auth);
    router.use('/api/stars', starsRouter.routes());
 
